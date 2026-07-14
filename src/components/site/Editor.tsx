@@ -1,0 +1,307 @@
+import { useMemo, useState } from 'react';
+import Icon from '@/components/ui/icon';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import StampPreview, { StampConfig } from './StampPreview';
+import type { CartItem } from './types';
+
+interface Osnastka {
+  id: string;
+  name: string;
+  shape: StampConfig['shape'];
+  price: number;
+}
+
+const OSNASTKI: Osnastka[] = [
+  { id: 'trodat-circle', name: 'Trodat 46040 (Ø40)', shape: 'circle', price: 690 },
+  { id: 'colop-circle', name: 'Colop R40 (Ø40)', shape: 'circle', price: 750 },
+  { id: 'square-holder', name: 'Оснастка 4924 (квадрат)', shape: 'square', price: 820 },
+  { id: 'triangle-holder', name: 'Оснастка треугольная', shape: 'triangle', price: 890 },
+];
+
+const FONTS = ['Golos Text', 'Oswald', 'Times New Roman', 'Georgia', 'Arial'];
+
+const PRESETS: Record<string, Partial<StampConfig>> = {
+  ooo: {
+    topText: 'ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ',
+    bottomText: 'ГОРОД МОСКВА · ИНН 7700000000',
+    centerText: 'РОМАШКА',
+    centerSub: 'ОГРН 1234567890123',
+  },
+  ip: {
+    topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ',
+    bottomText: 'ИНН 770000000000 · ОГРНИП 000000000000',
+    centerText: 'ИВАНОВ',
+    centerSub: 'ИВАН ИВАНОВИЧ',
+  },
+  doctor: {
+    topText: 'ВРАЧ-ТЕРАПЕВТ',
+    bottomText: 'ЛИЦЕНЗИЯ ЛО-00-00-000000',
+    centerText: 'ПЕТРОВА',
+    centerSub: 'АННА СЕРГЕЕВНА',
+  },
+};
+
+const cleshePrice = (shape: string) =>
+  shape === 'triangle' ? 550 : shape === 'square' ? 500 : 450;
+
+interface EditorProps {
+  onAddToCart: (item: CartItem) => void;
+}
+
+const Editor = ({ onAddToCart }: EditorProps) => {
+  const [config, setConfig] = useState<StampConfig>({
+    shape: 'circle',
+    size: 40,
+    topText: PRESETS.ooo.topText!,
+    bottomText: PRESETS.ooo.bottomText!,
+    centerText: PRESETS.ooo.centerText!,
+    centerSub: PRESETS.ooo.centerSub!,
+    fontSize: 15,
+    letterSpacing: 2,
+    textRadius: 130,
+    border: 'single',
+    symbol: 'star',
+    font: 'Golos Text',
+  });
+  const [osnastka, setOsnastka] = useState(OSNASTKI[0]);
+  const [urgent, setUrgent] = useState(false);
+  const [readyAt, setReadyAt] = useState('');
+
+  const set = <K extends keyof StampConfig>(k: K, v: StampConfig[K]) =>
+    setConfig((p) => ({ ...p, [k]: v }));
+
+  const applyPreset = (key: keyof typeof PRESETS) =>
+    setConfig((p) => ({ ...p, ...PRESETS[key] }));
+
+  const setShape = (shape: StampConfig['shape']) => {
+    set('shape', shape);
+    const match = OSNASTKI.find((o) => o.shape === shape);
+    if (match) setOsnastka(match);
+  };
+
+  const clashe = cleshePrice(config.shape);
+  const total = useMemo(() => {
+    const base = clashe + osnastka.price;
+    return urgent ? base * 2 : base;
+  }, [clashe, osnastka.price, urgent]);
+
+  const handleAdd = () => {
+    onAddToCart({
+      id: `${Date.now()}`,
+      title: `Печать ${config.shape === 'circle' ? 'круглая' : config.shape === 'square' ? 'квадратная' : 'треугольная'} · ${osnastka.name}`,
+      subtitle: `Клеше + оснастка${urgent ? ' · СРОЧНО' : ''}`,
+      price: total,
+      qty: 1,
+    });
+  };
+
+  const OSN_FILTERED = OSNASTKI.filter((o) => o.shape === config.shape);
+
+  return (
+    <section id="editor" className="relative py-20">
+      <div className="container">
+        <div className="mb-10 text-center">
+          <h2 className="font-display text-4xl font-700 tracking-tight md:text-5xl">
+            ОНЛАЙН-РЕДАКТОР <span className="text-primary">МАКЕТА</span>
+          </h2>
+          <p className="mt-3 text-muted-foreground">
+            Настройте печать под себя — форма, размер, шрифт, интервалы и рамка
+          </p>
+        </div>
+
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_400px]">
+          {/* Preview */}
+          <div className="order-2 lg:order-1 rounded-2xl border border-border/60 bg-card/50 p-6 grid content-start gap-6">
+            <div className="rounded-xl border border-border/60 bg-[#fff] p-6 flex items-center justify-center">
+              <StampPreview config={config} />
+            </div>
+
+            {/* Order type + price */}
+            <div className="grid gap-3 rounded-xl border border-border/60 bg-secondary/40 p-4">
+              <div className="flex items-center gap-2 text-sm font-600">
+                <Icon name="Receipt" size={16} className="text-primary" />
+                Стоимость и исполнение
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <span className="text-muted-foreground">Клеше ({config.shape})</span>
+                <span className="text-right">{clashe} ₽</span>
+                <span className="text-muted-foreground">Оснастка</span>
+                <span className="text-right">{osnastka.price} ₽</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setUrgent(false)}
+                  className={`rounded-lg border p-2 text-sm transition ${!urgent ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
+                >
+                  Стандартный
+                </button>
+                <button
+                  onClick={() => setUrgent(true)}
+                  className={`rounded-lg border p-2 text-sm transition ${urgent ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
+                >
+                  Срочный ×2
+                </button>
+              </div>
+
+              {urgent && (
+                <div className="animate-fade-in">
+                  <Label className="text-xs text-muted-foreground">Дата и время готовности</Label>
+                  <Input
+                    type="datetime-local"
+                    value={readyAt}
+                    onChange={(e) => setReadyAt(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+              )}
+
+              <div className="flex items-center justify-between border-t border-border/60 pt-3">
+                <span className="text-sm text-muted-foreground">Итого</span>
+                <span className="font-display text-2xl font-700 text-primary">{total} ₽</span>
+              </div>
+              <Button onClick={handleAdd} className="glow">
+                <Icon name="ShoppingCart" size={18} />
+                В корзину
+              </Button>
+            </div>
+          </div>
+
+          {/* Controls */}
+          <div className="order-1 lg:order-2 grid content-start gap-5 rounded-2xl border border-border/60 bg-card/50 p-6">
+            {/* presets */}
+            <div>
+              <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Готовый макет</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {(['ooo', 'ip', 'doctor'] as const).map((k) => (
+                  <Button key={k} variant="outline" size="sm" onClick={() => applyPreset(k)}>
+                    {k === 'ooo' ? 'ООО' : k === 'ip' ? 'ИП' : 'Врач'}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* shape */}
+            <div>
+              <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Форма</Label>
+              <Tabs value={config.shape} onValueChange={(v) => setShape(v as StampConfig['shape'])}>
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="circle">Круг</TabsTrigger>
+                  <TabsTrigger value="square">Квадрат</TabsTrigger>
+                  <TabsTrigger value="triangle">Треугольник</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
+            {/* osnastka */}
+            <div>
+              <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Оснастка</Label>
+              <div className="grid gap-2">
+                {OSN_FILTERED.map((o) => (
+                  <button
+                    key={o.id}
+                    onClick={() => setOsnastka(o)}
+                    className={`flex items-center justify-between rounded-lg border p-2.5 text-sm transition ${osnastka.id === o.id ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}`}
+                  >
+                    <span>{o.name}</span>
+                    <span className="text-primary">{o.price} ₽</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* text fields */}
+            <div className="grid gap-3">
+              {config.shape === 'circle' && (
+                <>
+                  <TextField label="Текст по верхней дуге" value={config.topText} onChange={(v) => set('topText', v)} />
+                  <TextField label="Текст по нижней дуге" value={config.bottomText} onChange={(v) => set('bottomText', v)} />
+                </>
+              )}
+              <TextField label="Центр — название / фамилия" value={config.centerText} onChange={(v) => set('centerText', v)} />
+              <TextField label="Центр — доп. строка (имя, ОГРН)" value={config.centerSub} onChange={(v) => set('centerSub', v)} />
+            </div>
+
+            {/* font */}
+            <div>
+              <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Шрифт</Label>
+              <div className="flex flex-wrap gap-2">
+                {FONTS.map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => set('font', f)}
+                    style={{ fontFamily: f }}
+                    className={`rounded-lg border px-3 py-1.5 text-sm transition ${config.font === f ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/50'}`}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* sliders */}
+            <SliderRow label="Размер шрифта" value={config.fontSize} min={10} max={24} onChange={(v) => set('fontSize', v)} unit="px" />
+            <SliderRow label="Интервал между букв" value={config.letterSpacing} min={0} max={10} onChange={(v) => set('letterSpacing', v)} />
+            <SliderRow label="Радиус текста по кругу" value={config.textRadius} min={90} max={148} onChange={(v) => set('textRadius', v)} unit="px" />
+            <SliderRow label="Размер оттиска" value={config.size} min={20} max={60} onChange={(v) => set('size', v)} unit="мм" />
+
+            {/* border */}
+            <div>
+              <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Рамка</Label>
+              <div className="grid grid-cols-4 gap-2">
+                {(['single', 'double', 'dashed', 'none'] as const).map((b) => (
+                  <button
+                    key={b}
+                    onClick={() => set('border', b)}
+                    className={`rounded-lg border p-2 text-xs transition ${config.border === b ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
+                  >
+                    {b === 'single' ? 'Одна' : b === 'double' ? 'Двойная' : b === 'dashed' ? 'Пунктир' : 'Нет'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* symbol */}
+            <div>
+              <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Символ по бокам</Label>
+              <div className="grid grid-cols-5 gap-2">
+                {(['none', 'star', 'star8', 'dot', 'diamond'] as const).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => set('symbol', s)}
+                    className={`rounded-lg border p-2 text-lg transition ${config.symbol === s ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
+                  >
+                    {s === 'none' ? '—' : s === 'star' ? '★' : s === 'star8' ? '✷' : s === 'dot' ? '●' : '◆'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const TextField = ({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) => (
+  <div>
+    <Label className="mb-1.5 block text-xs text-muted-foreground">{label}</Label>
+    <Input value={value} onChange={(e) => onChange(e.target.value)} />
+  </div>
+);
+
+const SliderRow = ({ label, value, min, max, onChange, unit }: { label: string; value: number; min: number; max: number; onChange: (v: number) => void; unit?: string }) => (
+  <div>
+    <div className="mb-1.5 flex items-center justify-between">
+      <Label className="text-xs uppercase tracking-wide text-muted-foreground">{label}</Label>
+      <span className="text-xs font-600 text-primary">{value}{unit || ''}</span>
+    </div>
+    <Slider value={[value]} min={min} max={max} step={1} onValueChange={([v]) => onChange(v)} />
+  </div>
+);
+
+export default Editor;

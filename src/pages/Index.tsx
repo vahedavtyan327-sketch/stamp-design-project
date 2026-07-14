@@ -1,15 +1,42 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import Header from '@/components/site/Header';
+import Hero from '@/components/site/Hero';
+import Editor from '@/components/site/Editor';
+import Catalog from '@/components/site/Catalog';
+import Templates from '@/components/site/Templates';
+import Gallery from '@/components/site/Gallery';
+import Services from '@/components/site/Services';
+import Contacts from '@/components/site/Contacts';
+import Footer from '@/components/site/Footer';
+import CartSheet from '@/components/site/CartSheet';
+import { toast } from '@/hooks/use-toast';
+import type { CartItem } from '@/components/site/types';
 
 const Index = () => {
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cartOpen, setCartOpen] = useState(false);
+
+  const addToCart = (item: CartItem) => {
+    setCart((prev) => [...prev, item]);
+    toast({ title: 'Добавлено в корзину', description: item.title });
+  };
+
+  const removeFromCart = (id: string) => setCart((prev) => prev.filter((i) => i.id !== id));
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4 color-black text-black">Добро пожаловать!</h1>
-        <p className="text-xl text-gray-600">тут будет отображаться ваш проект</p>
-      </div>
-      <span className="absolute bottom-8 left-1/2 -translate-x-1/2 inline-block bg-[#FF6637] text-white text-sm px-4 py-2 rounded-full whitespace-nowrap">
-        Подождите 5 минут, Юра создает первую версию проекта с нуля
-      </span>
+    <div className="min-h-screen scroll-smooth">
+      <Header cartCount={cart.length} onCartClick={() => setCartOpen(true)} />
+      <main>
+        <Hero />
+        <Editor onAddToCart={addToCart} />
+        <Catalog onAddToCart={addToCart} />
+        <Templates />
+        <Gallery />
+        <Services />
+        <Contacts />
+      </main>
+      <Footer />
+      <CartSheet open={cartOpen} onOpenChange={setCartOpen} items={cart} onRemove={removeFromCart} />
     </div>
   );
 };
