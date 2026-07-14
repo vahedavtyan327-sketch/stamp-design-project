@@ -24,26 +24,107 @@ const OSNASTKI: Osnastka[] = [
 
 const FONTS = ['Golos Text', 'Oswald', 'Times New Roman', 'Georgia', 'Arial'];
 
-const PRESETS: Record<string, Partial<StampConfig>> = {
-  ooo: {
-    topText: 'ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ',
-    bottomText: 'ГОРОД МОСКВА · ИНН 7700000000',
-    centerText: 'РОМАШКА',
-    centerSub: 'ОГРН 1234567890123',
-  },
+interface PresetDef {
+  label: string;
+  config: Partial<StampConfig>;
+}
+
+const PRESETS: Record<string, PresetDef> = {
   ip: {
-    topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ',
-    bottomText: 'ИНН 770000000000 · ОГРНИП 000000000000',
-    centerText: 'ИВАНОВ',
-    centerSub: 'ИВАН ИВАНОВИЧ',
+    label: 'ИП',
+    config: {
+      shape: 'circle',
+      topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ · ОГРНИП 115774000000',
+      bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА · ИНН 7745550000',
+      centerText: 'НОСОВ',
+      centerSub: 'ИЛЬЯ ОЛЕГОВИЧ',
+      symbol: 'none',
+      border: 'single',
+    },
+  },
+  ooo: {
+    label: 'ООО',
+    config: {
+      shape: 'circle',
+      topText: 'ОГРН 00001234567890 · ИНН 01234567890',
+      bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА · ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ',
+      centerText: 'НАЗВАНИЕ',
+      centerSub: 'КОМПАНИИ',
+      symbol: 'star',
+      border: 'single',
+    },
   },
   doctor: {
-    topText: 'ВРАЧ-ТЕРАПЕВТ',
-    bottomText: 'ЛИЦЕНЗИЯ ЛО-00-00-000000',
-    centerText: 'ПЕТРОВА',
-    centerSub: 'АННА СЕРГЕЕВНА',
+    label: 'Врач',
+    config: {
+      shape: 'circle',
+      topText: 'ХМАРЕНКО',
+      bottomText: 'АНТОН НИКОЛАЕВИЧ',
+      centerText: 'ВРАЧ',
+      centerSub: 'стоматолог',
+      symbol: 'star',
+      border: 'double',
+    },
+  },
+  gerb: {
+    label: 'Гос',
+    config: {
+      shape: 'circle',
+      topText: 'ГОСУДАРСТВЕННОЕ БЮДЖЕТНОЕ УЧРЕЖДЕНИЕ',
+      bottomText: 'ДЕПАРТАМЕНТ ЗДРАВООХРАНЕНИЯ · ГОРОД МОСКВА',
+      centerText: 'ГЕРБ',
+      centerSub: 'ОФИЦИАЛЬНАЯ',
+      symbol: 'star8',
+      border: 'double',
+    },
+  },
+  triangle: {
+    label: 'Треуг.',
+    config: {
+      shape: 'triangle',
+      topText: '',
+      bottomText: '',
+      centerText: 'ДЛЯ',
+      centerSub: 'СПРАВОК',
+      border: 'single',
+    },
+  },
+  square1: {
+    label: 'Квадрат 1',
+    config: {
+      shape: 'square',
+      topText: '',
+      bottomText: '',
+      centerText: 'КОПИЯ',
+      centerSub: 'ВЕРНА',
+      border: 'single',
+    },
+  },
+  square2: {
+    label: 'Квадрат 2',
+    config: {
+      shape: 'square',
+      topText: '',
+      bottomText: '',
+      centerText: 'ОПЛАЧЕНО',
+      centerSub: '',
+      border: 'double',
+    },
+  },
+  square3: {
+    label: 'Квадрат 3',
+    config: {
+      shape: 'square',
+      topText: '',
+      bottomText: '',
+      centerText: 'ДОКУМЕНТЫ',
+      centerSub: 'ПОЛУЧЕНЫ',
+      border: 'dashed',
+    },
   },
 };
+
+const PRESET_KEYS = Object.keys(PRESETS);
 
 const cleshePrice = (shape: string) =>
   shape === 'triangle' ? 550 : shape === 'square' ? 500 : 450;
@@ -56,10 +137,10 @@ const Editor = ({ onAddToCart }: EditorProps) => {
   const [config, setConfig] = useState<StampConfig>({
     shape: 'circle',
     size: 40,
-    topText: PRESETS.ooo.topText!,
-    bottomText: PRESETS.ooo.bottomText!,
-    centerText: PRESETS.ooo.centerText!,
-    centerSub: PRESETS.ooo.centerSub!,
+    topText: PRESETS.ip.config.topText!,
+    bottomText: PRESETS.ip.config.bottomText!,
+    centerText: PRESETS.ip.config.centerText!,
+    centerSub: PRESETS.ip.config.centerSub!,
     fontSize: 15,
     letterSpacing: 2,
     textRadius: 130,
@@ -74,8 +155,14 @@ const Editor = ({ onAddToCart }: EditorProps) => {
   const set = <K extends keyof StampConfig>(k: K, v: StampConfig[K]) =>
     setConfig((p) => ({ ...p, [k]: v }));
 
-  const applyPreset = (key: keyof typeof PRESETS) =>
-    setConfig((p) => ({ ...p, ...PRESETS[key] }));
+  const applyPreset = (key: string) => {
+    const preset = PRESETS[key].config;
+    setConfig((p) => ({ ...p, ...preset }));
+    if (preset.shape) {
+      const match = OSNASTKI.find((o) => o.shape === preset.shape);
+      if (match) setOsnastka(match);
+    }
+  };
 
   const setShape = (shape: StampConfig['shape']) => {
     set('shape', shape);
@@ -175,11 +262,11 @@ const Editor = ({ onAddToCart }: EditorProps) => {
           <div className="order-1 lg:order-2 grid content-start gap-5 rounded-2xl border border-border/60 bg-card/50 p-6">
             {/* presets */}
             <div>
-              <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Готовый макет</Label>
-              <div className="grid grid-cols-3 gap-2">
-                {(['ooo', 'ip', 'doctor'] as const).map((k) => (
-                  <Button key={k} variant="outline" size="sm" onClick={() => applyPreset(k)}>
-                    {k === 'ooo' ? 'ООО' : k === 'ip' ? 'ИП' : 'Врач'}
+              <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Готовый макет по образцу</Label>
+              <div className="grid grid-cols-4 gap-2">
+                {PRESET_KEYS.map((k) => (
+                  <Button key={k} variant="outline" size="sm" onClick={() => applyPreset(k)} className="px-1 text-xs">
+                    {PRESETS[k].label}
                   </Button>
                 ))}
               </div>

@@ -9,29 +9,30 @@ const base: StampConfig = {
 };
 
 const TEMPLATES: Record<string, StampConfig[]> = {
-  'ООО': [
-    { ...base, topText: 'ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', bottomText: 'ГОРОД МОСКВА', centerText: 'РОМАШКА', centerSub: 'ОГРН 1234567890123' },
-    { ...base, topText: 'ООО «ТЕХНОЛОГИИ БУДУЩЕГО»', bottomText: 'ИНН 7700000000', centerText: 'ТБ', centerSub: 'г. Санкт-Петербург', border: 'double' },
-  ],
   'ИП': [
-    { ...base, topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ', bottomText: 'ОГРНИП 000000000000', centerText: 'ИВАНОВ', centerSub: 'ИВАН ИВАНОВИЧ' },
-    { ...base, topText: 'ИП ПЕТРОВ П. П.', bottomText: 'ИНН 770000000000', centerText: 'ПЕТРОВ', centerSub: 'ПАВЕЛ ПАВЛОВИЧ', symbol: 'diamond' },
+    { ...base, symbol: 'none', topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ · ОГРНИП 115774000000', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА · ИНН 7745550000', centerText: 'НОСОВ', centerSub: 'ИЛЬЯ ОЛЕГОВИЧ' },
+    { ...base, symbol: 'none', topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ · ИНН 770000000000', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ · ОГРНИП 000000000000', centerText: 'ПЕТРОВ', centerSub: 'ПАВЕЛ ПАВЛОВИЧ' },
+  ],
+  'ООО': [
+    { ...base, topText: 'ОГРН 00001234567890 · ИНН 01234567890', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА · ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', centerText: 'НАЗВАНИЕ', centerSub: 'КОМПАНИИ' },
+    { ...base, topText: 'ОГРН 5127746000000 · ИНН 7700000000', bottomText: 'ГОРОД МОСКВА · ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', centerText: 'АЛЬФА', centerSub: 'ТРЕЙД', border: 'double' },
   ],
   'Врачи': [
-    { ...base, topText: 'ВРАЧ-ТЕРАПЕВТ', bottomText: 'ЛИЦЕНЗИЯ ЛО-00-00-000000', centerText: 'ПЕТРОВА', centerSub: 'АННА СЕРГЕЕВНА' },
-    { ...base, topText: 'СТОМАТОЛОГ', bottomText: 'КЛИНИКА «ЗДОРОВЬЕ»', centerText: 'СИДОРОВ', centerSub: 'ВРАЧ ВЫСШЕЙ КАТЕГОРИИ', symbol: 'dot' },
+    { ...base, border: 'double', topText: 'ХМАРЕНКО', bottomText: 'АНТОН НИКОЛАЕВИЧ', centerText: 'ВРАЧ', centerSub: 'стоматолог' },
+    { ...base, border: 'double', symbol: 'dot', topText: 'КОЗЛОВА', bottomText: 'МАРИЯ ИГОРЕВНА', centerText: 'ВРАЧ', centerSub: 'кардиолог' },
   ],
   'Гербовые': [
-    { ...base, topText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ', bottomText: 'ГОСУДАРСТВЕННОЕ УЧРЕЖДЕНИЕ', centerText: '⬤', centerSub: 'ОФИЦИАЛЬНАЯ', border: 'double', symbol: 'star8' },
-    { ...base, topText: 'НОТАРИУС', bottomText: 'ГОРОД МОСКВА', centerText: 'ГЕРБ', centerSub: 'ЛИЦЕНЗИЯ', border: 'double' },
+    { ...base, topText: 'ГОСУДАРСТВЕННОЕ БЮДЖЕТНОЕ УЧРЕЖДЕНИЕ', bottomText: 'ДЕПАРТАМЕНТ ЗДРАВООХРАНЕНИЯ · ГОРОД МОСКВА', centerText: 'ГЕРБ', centerSub: 'ОФИЦИАЛЬНАЯ', border: 'double', symbol: 'star8' },
+    { ...base, topText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ · НОТАРИУС', bottomText: 'ГОРОД МОСКВА', centerText: 'ГЕРБ', centerSub: 'ЛИЦЕНЗИЯ', border: 'double' },
   ],
   'Треугольные': [
-    { ...base, shape: 'triangle', topText: '', bottomText: '', centerText: 'КОНТРОЛЬ', centerSub: 'ОТК №5' },
-    { ...base, shape: 'triangle', centerText: 'ОПЛАЧЕНО', centerSub: 'касса №2', border: 'double' },
+    { ...base, shape: 'triangle', topText: '', bottomText: '', centerText: 'ДЛЯ', centerSub: 'СПРАВОК' },
+    { ...base, shape: 'triangle', topText: '', bottomText: '', centerText: 'ОТК', centerSub: 'КОНТРОЛЬ', border: 'double' },
   ],
   'Квадратные': [
-    { ...base, shape: 'square', topText: '', bottomText: '', centerText: 'ДОКУМЕНТЫ', centerSub: 'ПОЛУЧЕНЫ' },
-    { ...base, shape: 'square', centerText: 'КОПИЯ', centerSub: 'ВЕРНА', border: 'dashed' },
+    { ...base, shape: 'square', topText: '', bottomText: '', centerText: 'КОПИЯ', centerSub: 'ВЕРНА' },
+    { ...base, shape: 'square', topText: '', bottomText: '', centerText: 'ОПЛАЧЕНО', centerSub: '', border: 'double' },
+    { ...base, shape: 'square', topText: '', bottomText: '', centerText: 'ДОКУМЕНТЫ', centerSub: 'ПОЛУЧЕНЫ', border: 'dashed' },
   ],
 };
 
