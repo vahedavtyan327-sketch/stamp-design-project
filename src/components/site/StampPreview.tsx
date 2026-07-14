@@ -3,11 +3,14 @@ export interface StampConfig {
   size: number;
   topText: string;
   bottomText: string;
+  innerTopText: string;
+  innerBottomText: string;
   centerText: string;
   centerSub: string;
   fontSize: number;
   letterSpacing: number;
-  textRadius: number;
+  outerRadius: number;
+  innerRadius: number;
   border: 'single' | 'double' | 'dashed' | 'none';
   symbol: 'none' | 'star' | 'star8' | 'dot' | 'diamond';
   font: string;
@@ -22,27 +25,31 @@ const SYMBOLS: Record<string, string> = {
 
 const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: number }) => {
   const c = 160;
-  const outerR = 150;
-  const textR = config.textRadius;
+  const outerBorderR = 150;
 
-  const renderArcText = (text: string, position: 'top' | 'bottom') => {
+  const renderArcText = (text: string, position: 'top' | 'bottom', radius: number) => {
     if (!text) return null;
     const chars = text.split('');
+
+    // arc length (px) needed per character, based on font size + letter spacing
+    const charArc = config.fontSize * 0.62 + config.letterSpacing;
+    const anglePerChar = (charArc / radius) * (180 / Math.PI);
+    const totalAngle = Math.min(anglePerChar * chars.length, 210);
+
     const isTop = position === 'top';
-    const totalAngle = Math.min(chars.length * (config.letterSpacing + 8), 260);
     const startAngle = isTop ? -90 - totalAngle / 2 : 90 - totalAngle / 2;
     const step = chars.length > 1 ? totalAngle / (chars.length - 1) : 0;
 
     return chars.map((ch, i) => {
       const angle = (startAngle + step * i) * (Math.PI / 180);
-      const x = c + textR * Math.cos(angle);
-      const y = c + textR * Math.sin(angle);
+      const x = c + radius * Math.cos(angle);
+      const y = c + radius * Math.sin(angle);
       const rot = isTop
         ? (startAngle + step * i) + 90
         : (startAngle + step * i) - 90;
       return (
         <text
-          key={`${position}-${i}`}
+          key={`${position}-${radius}-${i}`}
           x={x}
           y={y}
           fontSize={config.fontSize}
@@ -63,9 +70,9 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
     if (config.shape === 'circle') {
       return (
         <>
-          <circle cx={c} cy={c} r={outerR} fill="none" stroke="#000" strokeWidth={config.border === 'none' ? 0 : 4} strokeDasharray={config.border === 'dashed' ? '10 6' : undefined} />
+          <circle cx={c} cy={c} r={outerBorderR} fill="none" stroke="#000" strokeWidth={config.border === 'none' ? 0 : 4} strokeDasharray={config.border === 'dashed' ? '10 6' : undefined} />
           {config.border === 'double' && (
-            <circle cx={c} cy={c} r={outerR - 10} fill="none" stroke="#000" strokeWidth={2} />
+            <circle cx={c} cy={c} r={outerBorderR - 10} fill="none" stroke="#000" strokeWidth={2} />
           )}
         </>
       );
@@ -91,6 +98,8 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
   };
 
   const centerY = config.shape === 'triangle' ? 200 : c;
+  const centerGap = config.fontSize * 0.55 + 6;
+  const symbolR = config.outerRadius + (outerBorderR - config.outerRadius) / 2 + 4;
 
   return (
     <svg
@@ -104,12 +113,14 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
 
       {config.shape === 'circle' && (
         <>
-          {renderArcText(config.topText, 'top')}
-          {renderArcText(config.bottomText, 'bottom')}
+          {renderArcText(config.topText, 'top', config.outerRadius)}
+          {renderArcText(config.bottomText, 'bottom', config.outerRadius)}
+          {renderArcText(config.innerTopText, 'top', config.innerRadius)}
+          {renderArcText(config.innerBottomText, 'bottom', config.innerRadius)}
           {config.symbol !== 'none' && (
             <>
-              <text x={40} y={c + 6} fontSize={22} textAnchor="middle" fill="#000">{SYMBOLS[config.symbol]}</text>
-              <text x={280} y={c + 6} fontSize={22} textAnchor="middle" fill="#000">{SYMBOLS[config.symbol]}</text>
+              <text x={c - symbolR} y={c + 6} fontSize={20} textAnchor="middle" fill="#000">{SYMBOLS[config.symbol]}</text>
+              <text x={c + symbolR} y={c + 6} fontSize={20} textAnchor="middle" fill="#000">{SYMBOLS[config.symbol]}</text>
             </>
           )}
         </>
@@ -118,7 +129,7 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
       {config.centerText && (
         <text
           x={c}
-          y={centerY - (config.centerSub ? 12 : 0)}
+          y={centerY - (config.centerSub ? centerGap : 0)}
           fontSize={config.fontSize + 4}
           fontFamily={config.font}
           fontWeight={700}
@@ -133,7 +144,7 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
       {config.centerSub && (
         <text
           x={c}
-          y={centerY + 12}
+          y={centerY + centerGap}
           fontSize={config.fontSize - 2}
           fontFamily={config.font}
           fontWeight={500}

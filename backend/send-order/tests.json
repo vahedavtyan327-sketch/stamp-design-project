@@ -1,0 +1,24 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Contact form missing fields",
+      "method": "POST",
+      "path": "/",
+      "body": {"type": "contact", "name": "", "phone": "", "message": ""},
+      "expectedStatus": 400
+    },
+    {
+      "name": "Order missing items",
+      "method": "POST",
+      "path": "/",
+      "body": {"type": "order", "items": []},
+      "expectedStatus": 400
+    }
+  ]
+}

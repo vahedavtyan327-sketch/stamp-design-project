@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 
 const base: StampConfig = {
-  shape: 'circle', size: 40, topText: '', bottomText: '', centerText: '', centerSub: '',
-  fontSize: 14, letterSpacing: 2, textRadius: 130, border: 'single', symbol: 'star', font: 'Golos Text',
+  shape: 'circle', size: 40, topText: '', bottomText: '', innerTopText: '', innerBottomText: '', centerText: '', centerSub: '',
+  fontSize: 14, letterSpacing: 2, outerRadius: 130, innerRadius: 95, border: 'single', symbol: 'star', font: 'Golos Text',
 };
 
 const TEMPLATES: Record<string, StampConfig[]> = {

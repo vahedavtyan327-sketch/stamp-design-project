@@ -13,14 +13,17 @@ interface Osnastka {
   name: string;
   shape: StampConfig['shape'];
   price: number;
+  sizes: number[];
 }
 
 const OSNASTKI: Osnastka[] = [
-  { id: 'trodat-circle', name: 'Trodat 46040 (Ø40)', shape: 'circle', price: 690 },
-  { id: 'colop-circle', name: 'Colop R40 (Ø40)', shape: 'circle', price: 750 },
-  { id: 'square-holder', name: 'Оснастка 4924 (квадрат)', shape: 'square', price: 820 },
-  { id: 'triangle-holder', name: 'Оснастка треугольная', shape: 'triangle', price: 890 },
+  { id: 'trodat-circle', name: 'Trodat 46040', shape: 'circle', price: 690, sizes: [38, 40, 45] },
+  { id: 'colop-circle', name: 'Colop R40', shape: 'circle', price: 750, sizes: [38, 40, 45, 50] },
+  { id: 'square-holder', name: 'Оснастка 4924', shape: 'square', price: 820, sizes: [38, 40, 45] },
+  { id: 'triangle-holder', name: 'Треугольная оснастка', shape: 'triangle', price: 890, sizes: [40, 45, 50] },
 ];
+
+const sizePriceAdd = (base: number, size: number) => Math.round((size - base) * 12);
 
 const FONTS = ['Golos Text', 'Oswald', 'Times New Roman', 'Georgia', 'Arial'];
 
@@ -72,6 +75,8 @@ const PRESETS: Record<string, PresetDef> = {
       shape: 'circle',
       topText: 'ГОСУДАРСТВЕННОЕ БЮДЖЕТНОЕ УЧРЕЖДЕНИЕ',
       bottomText: 'ДЕПАРТАМЕНТ ЗДРАВООХРАНЕНИЯ · ГОРОД МОСКВА',
+      innerTopText: 'ЗАРЕГИСТРИРОВАНО В РЕЕСТРЕ',
+      innerBottomText: 'ПЕЧАТЕЙ №764754744164',
       centerText: 'ГЕРБ',
       centerSub: 'ОФИЦИАЛЬНАЯ',
       symbol: 'star8',
@@ -139,16 +144,20 @@ const Editor = ({ onAddToCart }: EditorProps) => {
     size: 40,
     topText: PRESETS.ip.config.topText!,
     bottomText: PRESETS.ip.config.bottomText!,
+    innerTopText: '',
+    innerBottomText: '',
     centerText: PRESETS.ip.config.centerText!,
     centerSub: PRESETS.ip.config.centerSub!,
     fontSize: 15,
     letterSpacing: 2,
-    textRadius: 130,
+    outerRadius: 130,
+    innerRadius: 95,
     border: 'single',
     symbol: 'star',
     font: 'Golos Text',
   });
   const [osnastka, setOsnastka] = useState(OSNASTKI[0]);
+  const [osnastkaSize, setOsnastkaSize] = useState(OSNASTKI[0].sizes[1]);
   const [urgent, setUrgent] = useState(false);
   const [readyAt, setReadyAt] = useState('');
 
@@ -160,26 +169,38 @@ const Editor = ({ onAddToCart }: EditorProps) => {
     setConfig((p) => ({ ...p, ...preset }));
     if (preset.shape) {
       const match = OSNASTKI.find((o) => o.shape === preset.shape);
-      if (match) setOsnastka(match);
+      if (match) {
+        setOsnastka(match);
+        setOsnastkaSize(match.sizes[Math.floor(match.sizes.length / 2)]);
+      }
     }
   };
 
   const setShape = (shape: StampConfig['shape']) => {
     set('shape', shape);
     const match = OSNASTKI.find((o) => o.shape === shape);
-    if (match) setOsnastka(match);
+    if (match) {
+      setOsnastka(match);
+      setOsnastkaSize(match.sizes[Math.floor(match.sizes.length / 2)]);
+    }
+  };
+
+  const selectOsnastka = (o: Osnastka) => {
+    setOsnastka(o);
+    setOsnastkaSize(o.sizes[Math.floor(o.sizes.length / 2)]);
   };
 
   const clashe = cleshePrice(config.shape);
+  const osnastkaPrice = osnastka.price + sizePriceAdd(osnastka.sizes[0], osnastkaSize);
   const total = useMemo(() => {
-    const base = clashe + osnastka.price;
+    const base = clashe + osnastkaPrice;
     return urgent ? base * 2 : base;
-  }, [clashe, osnastka.price, urgent]);
+  }, [clashe, osnastkaPrice, urgent]);
 
   const handleAdd = () => {
     onAddToCart({
       id: `${Date.now()}`,
-      title: `Печать ${config.shape === 'circle' ? 'круглая' : config.shape === 'square' ? 'квадратная' : 'треугольная'} · ${osnastka.name}`,
+      title: `Печать ${config.shape === 'circle' ? 'круглая' : config.shape === 'square' ? 'квадратная' : 'треугольная'} · ${osnastka.name} Ø${osnastkaSize}мм`,
       subtitle: `Клеше + оснастка${urgent ? ' · СРОЧНО' : ''}`,
       price: total,
       qty: 1,
@@ -216,8 +237,8 @@ const Editor = ({ onAddToCart }: EditorProps) => {
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <span className="text-muted-foreground">Клеше ({config.shape})</span>
                 <span className="text-right">{clashe} ₽</span>
-                <span className="text-muted-foreground">Оснастка</span>
-                <span className="text-right">{osnastka.price} ₽</span>
+                <span className="text-muted-foreground">Оснастка Ø{osnastkaSize}мм</span>
+                <span className="text-right">{osnastkaPrice} ₽</span>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -291,7 +312,7 @@ const Editor = ({ onAddToCart }: EditorProps) => {
                 {OSN_FILTERED.map((o) => (
                   <button
                     key={o.id}
-                    onClick={() => setOsnastka(o)}
+                    onClick={() => selectOsnastka(o)}
                     className={`flex items-center justify-between rounded-lg border p-2.5 text-sm transition ${osnastka.id === o.id ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}`}
                   >
                     <span>{o.name}</span>
@@ -301,12 +322,30 @@ const Editor = ({ onAddToCart }: EditorProps) => {
               </div>
             </div>
 
+            {/* osnastka size */}
+            <div>
+              <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Размер оснастки</Label>
+              <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${osnastka.sizes.length}, minmax(0, 1fr))` }}>
+                {osnastka.sizes.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setOsnastkaSize(s)}
+                    className={`rounded-lg border p-2 text-sm transition ${osnastkaSize === s ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/50'}`}
+                  >
+                    Ø{s} мм
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* text fields */}
             <div className="grid gap-3">
               {config.shape === 'circle' && (
                 <>
-                  <TextField label="Текст по верхней дуге" value={config.topText} onChange={(v) => set('topText', v)} />
-                  <TextField label="Текст по нижней дуге" value={config.bottomText} onChange={(v) => set('bottomText', v)} />
+                  <TextField label="Внешнее кольцо — верх" value={config.topText} onChange={(v) => set('topText', v)} />
+                  <TextField label="Внешнее кольцо — низ" value={config.bottomText} onChange={(v) => set('bottomText', v)} />
+                  <TextField label="Внутреннее кольцо — верх" value={config.innerTopText} onChange={(v) => set('innerTopText', v)} />
+                  <TextField label="Внутреннее кольцо — низ" value={config.innerBottomText} onChange={(v) => set('innerBottomText', v)} />
                 </>
               )}
               <TextField label="Центр — название / фамилия" value={config.centerText} onChange={(v) => set('centerText', v)} />
@@ -333,7 +372,26 @@ const Editor = ({ onAddToCart }: EditorProps) => {
             {/* sliders */}
             <SliderRow label="Размер шрифта" value={config.fontSize} min={10} max={24} onChange={(v) => set('fontSize', v)} unit="px" />
             <SliderRow label="Интервал между букв" value={config.letterSpacing} min={0} max={10} onChange={(v) => set('letterSpacing', v)} />
-            <SliderRow label="Радиус текста по кругу" value={config.textRadius} min={90} max={148} onChange={(v) => set('textRadius', v)} unit="px" />
+            {config.shape === 'circle' && (
+              <>
+                <SliderRow
+                  label="Внешнее кольцо — расстояние от края"
+                  value={config.outerRadius}
+                  min={115}
+                  max={145}
+                  onChange={(v) => set('outerRadius', Math.max(v, config.innerRadius + 20))}
+                  unit="px"
+                />
+                <SliderRow
+                  label="Внутреннее кольцо — расстояние от центра"
+                  value={config.innerRadius}
+                  min={55}
+                  max={110}
+                  onChange={(v) => set('innerRadius', Math.min(v, config.outerRadius - 20))}
+                  unit="px"
+                />
+              </>
+            )}
             <SliderRow label="Размер оттиска" value={config.size} min={20} max={60} onChange={(v) => set('size', v)} unit="мм" />
 
             {/* border */}
