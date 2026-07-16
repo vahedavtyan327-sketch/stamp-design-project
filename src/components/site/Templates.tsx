@@ -4,14 +4,14 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 
 const base: StampConfig = {
-  shape: 'circle', size: 40, topText: '', bottomText: '', innerTopText: '', innerBottomText: '', centerText: '', centerSub: '',
-  fontSize: 14, letterSpacing: 2, outerRadius: 130, innerRadius: 95, border: 'single', symbol: 'star', font: 'Golos Text',
+  shape: 'circle', size: 40, topText: '', bottomText: '', innerTopText: '', innerBottomText: '', centerText: '', centerSub: '', centerSub2: '',
+  fontSize: 14, letterSpacing: 2, outerRadius: 130, innerRadius: 95, centerRadius: 62, showInnerRing: false, showCenterRing: false, border: 'single', symbol: 'star', font: 'Golos Text',
 };
 
 const TEMPLATES: Record<string, StampConfig[]> = {
   'ИП': [
-    { ...base, symbol: 'none', topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ · ОГРНИП 115774000000', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА · ИНН 7745550000', centerText: 'НОСОВ', centerSub: 'ИЛЬЯ ОЛЕГОВИЧ' },
-    { ...base, symbol: 'none', topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ · ИНН 770000000000', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ · ОГРНИП 000000000000', centerText: 'ПЕТРОВ', centerSub: 'ПАВЕЛ ПАВЛОВИЧ' },
+    { ...base, symbol: 'none', showInnerRing: true, showCenterRing: true, topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА', innerTopText: 'ОГРНИП 115774000000', innerBottomText: 'ИНН 7745550000', centerText: 'Носов', centerSub: 'Илья', centerSub2: 'Олегович' },
+    { ...base, symbol: 'none', showInnerRing: true, showCenterRing: true, topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ', innerTopText: 'ОГРНИП 000000000000', innerBottomText: 'ИНН 770000000000', centerText: 'Петров', centerSub: 'Павел', centerSub2: 'Павлович' },
   ],
   'ООО': [
     { ...base, topText: 'ОГРН 00001234567890 · ИНН 01234567890', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА · ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', centerText: 'НАЗВАНИЕ', centerSub: 'КОМПАНИИ' },

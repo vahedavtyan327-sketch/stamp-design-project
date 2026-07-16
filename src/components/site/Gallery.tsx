@@ -1,13 +1,13 @@
 import StampPreview, { StampConfig } from './StampPreview';
 
 const base: StampConfig = {
-  shape: 'circle', size: 40, topText: '', bottomText: '', innerTopText: '', innerBottomText: '', centerText: '', centerSub: '',
-  fontSize: 14, letterSpacing: 2, outerRadius: 130, innerRadius: 95, border: 'single', symbol: 'star', font: 'Golos Text',
+  shape: 'circle', size: 40, topText: '', bottomText: '', innerTopText: '', innerBottomText: '', centerText: '', centerSub: '', centerSub2: '',
+  fontSize: 14, letterSpacing: 2, outerRadius: 130, innerRadius: 95, centerRadius: 62, showInnerRing: false, showCenterRing: false, border: 'single', symbol: 'star', font: 'Golos Text',
 };
 
 const SAMPLES: StampConfig[] = [
   { ...base, topText: 'ООО «АЛЬФА ТРЕЙД»', bottomText: 'ГОРОД МОСКВА', centerText: 'АТ', centerSub: 'ОГРН 5127746000000' },
-  { ...base, topText: 'ИП СМИРНОВ А. В.', bottomText: 'ИНН 770000000000', centerText: 'СМИРНОВ', centerSub: 'АЛЕКСЕЙ', symbol: 'diamond' },
+  { ...base, showInnerRing: true, showCenterRing: true, symbol: 'none', topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ', innerTopText: 'ОГРНИП 770000000000', innerBottomText: 'ИНН 770000000000', centerText: 'Смирнов', centerSub: 'Алексей', centerSub2: 'Викторович' },
   { ...base, topText: 'ВРАЧ-КАРДИОЛОГ', bottomText: 'ЛИЦЕНЗИЯ ЛО-77', centerText: 'КОЗЛОВА', centerSub: 'МАРИЯ ИГОРЕВНА', symbol: 'dot' },
   { ...base, shape: 'triangle', centerText: 'ОПЛАЧЕНО', centerSub: 'касса №2' },
   { ...base, shape: 'square', centerText: 'КОПИЯ', centerSub: 'ВЕРНА', border: 'dashed' },

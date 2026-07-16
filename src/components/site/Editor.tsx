@@ -37,12 +37,17 @@ const PRESETS: Record<string, PresetDef> = {
     label: 'ИП',
     config: {
       shape: 'circle',
-      topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ · ОГРНИП 115774000000',
-      bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА · ИНН 7745550000',
-      centerText: 'НОСОВ',
-      centerSub: 'ИЛЬЯ ОЛЕГОВИЧ',
+      topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ',
+      bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА',
+      innerTopText: 'ОГРНИП 115774000000',
+      innerBottomText: 'ИНН 7745550000',
+      centerText: 'Носов',
+      centerSub: 'Илья',
+      centerSub2: 'Олегович',
       symbol: 'none',
       border: 'single',
+      showInnerRing: true,
+      showCenterRing: true,
     },
   },
   ooo: {
@@ -51,10 +56,15 @@ const PRESETS: Record<string, PresetDef> = {
       shape: 'circle',
       topText: 'ОГРН 00001234567890 · ИНН 01234567890',
       bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА · ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ',
+      innerTopText: '',
+      innerBottomText: '',
       centerText: 'НАЗВАНИЕ',
       centerSub: 'КОМПАНИИ',
+      centerSub2: '',
       symbol: 'star',
       border: 'single',
+      showInnerRing: false,
+      showCenterRing: false,
     },
   },
   doctor: {
@@ -63,10 +73,15 @@ const PRESETS: Record<string, PresetDef> = {
       shape: 'circle',
       topText: 'ХМАРЕНКО',
       bottomText: 'АНТОН НИКОЛАЕВИЧ',
+      innerTopText: '',
+      innerBottomText: '',
       centerText: 'ВРАЧ',
       centerSub: 'стоматолог',
+      centerSub2: '',
       symbol: 'star',
       border: 'double',
+      showInnerRing: false,
+      showCenterRing: false,
     },
   },
   gerb: {
@@ -79,8 +94,11 @@ const PRESETS: Record<string, PresetDef> = {
       innerBottomText: 'ПЕЧАТЕЙ №764754744164',
       centerText: 'ГЕРБ',
       centerSub: 'ОФИЦИАЛЬНАЯ',
+      centerSub2: '',
       symbol: 'star8',
       border: 'double',
+      showInnerRing: true,
+      showCenterRing: false,
     },
   },
   triangle: {
@@ -91,6 +109,7 @@ const PRESETS: Record<string, PresetDef> = {
       bottomText: '',
       centerText: 'ДЛЯ',
       centerSub: 'СПРАВОК',
+      centerSub2: '',
       border: 'single',
     },
   },
@@ -102,6 +121,7 @@ const PRESETS: Record<string, PresetDef> = {
       bottomText: '',
       centerText: 'КОПИЯ',
       centerSub: 'ВЕРНА',
+      centerSub2: '',
       border: 'single',
     },
   },
@@ -113,6 +133,7 @@ const PRESETS: Record<string, PresetDef> = {
       bottomText: '',
       centerText: 'ОПЛАЧЕНО',
       centerSub: '',
+      centerSub2: '',
       border: 'double',
     },
   },
@@ -124,6 +145,7 @@ const PRESETS: Record<string, PresetDef> = {
       bottomText: '',
       centerText: 'ДОКУМЕНТЫ',
       centerSub: 'ПОЛУЧЕНЫ',
+      centerSub2: '',
       border: 'dashed',
     },
   },
@@ -144,14 +166,18 @@ const Editor = ({ onAddToCart }: EditorProps) => {
     size: 40,
     topText: PRESETS.ip.config.topText!,
     bottomText: PRESETS.ip.config.bottomText!,
-    innerTopText: '',
-    innerBottomText: '',
+    innerTopText: PRESETS.ip.config.innerTopText || '',
+    innerBottomText: PRESETS.ip.config.innerBottomText || '',
     centerText: PRESETS.ip.config.centerText!,
     centerSub: PRESETS.ip.config.centerSub!,
+    centerSub2: PRESETS.ip.config.centerSub2 || '',
     fontSize: 15,
     letterSpacing: 2,
     outerRadius: 130,
     innerRadius: 95,
+    centerRadius: 62,
+    showInnerRing: PRESETS.ip.config.showInnerRing ?? false,
+    showCenterRing: PRESETS.ip.config.showCenterRing ?? false,
     border: 'single',
     symbol: 'star',
     font: 'Golos Text',
@@ -338,6 +364,27 @@ const Editor = ({ onAddToCart }: EditorProps) => {
               </div>
             </div>
 
+            {/* rings visibility */}
+            {config.shape === 'circle' && (
+              <div>
+                <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Кольца печати</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => set('showInnerRing', !config.showInnerRing)}
+                    className={`rounded-lg border p-2 text-xs transition ${config.showInnerRing ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
+                  >
+                    Внутренний овал
+                  </button>
+                  <button
+                    onClick={() => set('showCenterRing', !config.showCenterRing)}
+                    className={`rounded-lg border p-2 text-xs transition ${config.showCenterRing ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
+                  >
+                    Центральный овал
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* text fields */}
             <div className="grid gap-3">
               {config.shape === 'circle' && (
@@ -348,8 +395,9 @@ const Editor = ({ onAddToCart }: EditorProps) => {
                   <TextField label="Внутреннее кольцо — низ" value={config.innerBottomText} onChange={(v) => set('innerBottomText', v)} />
                 </>
               )}
-              <TextField label="Центр — название / фамилия" value={config.centerText} onChange={(v) => set('centerText', v)} />
-              <TextField label="Центр — доп. строка (имя, ОГРН)" value={config.centerSub} onChange={(v) => set('centerSub', v)} />
+              <TextField label="Центр — фамилия" value={config.centerText} onChange={(v) => set('centerText', v)} />
+              <TextField label="Центр — имя" value={config.centerSub} onChange={(v) => set('centerSub', v)} />
+              <TextField label="Центр — отчество" value={config.centerSub2} onChange={(v) => set('centerSub2', v)} />
             </div>
 
             {/* font */}
@@ -390,6 +438,16 @@ const Editor = ({ onAddToCart }: EditorProps) => {
                   onChange={(v) => set('innerRadius', Math.min(v, config.outerRadius - 20))}
                   unit="px"
                 />
+                {config.showCenterRing && (
+                  <SliderRow
+                    label="Центральный овал — радиус"
+                    value={config.centerRadius}
+                    min={40}
+                    max={80}
+                    onChange={(v) => set('centerRadius', v)}
+                    unit="px"
+                  />
+                )}
               </>
             )}
             <SliderRow label="Размер оттиска" value={config.size} min={20} max={60} onChange={(v) => set('size', v)} unit="мм" />

@@ -7,10 +7,14 @@ export interface StampConfig {
   innerBottomText: string;
   centerText: string;
   centerSub: string;
+  centerSub2: string;
   fontSize: number;
   letterSpacing: number;
   outerRadius: number;
   innerRadius: number;
+  centerRadius: number;
+  showInnerRing: boolean;
+  showCenterRing: boolean;
   border: 'single' | 'double' | 'dashed' | 'none';
   symbol: 'none' | 'star' | 'star8' | 'dot' | 'diamond';
   font: string;
@@ -74,6 +78,12 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
           {config.border === 'double' && (
             <circle cx={c} cy={c} r={outerBorderR - 10} fill="none" stroke="#000" strokeWidth={2} />
           )}
+          {config.showInnerRing && (
+            <circle cx={c} cy={c} r={config.innerRadius + 14} fill="none" stroke="#000" strokeWidth={1.5} />
+          )}
+          {config.showCenterRing && (
+            <circle cx={c} cy={c} r={config.centerRadius} fill="none" stroke="#000" strokeWidth={1.5} />
+          )}
         </>
       );
     }
@@ -98,7 +108,16 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
   };
 
   const centerY = config.shape === 'triangle' ? 200 : c;
-  const centerGap = config.fontSize * 0.55 + 6;
+  const centerLinesCount = 1 + (config.centerSub ? 1 : 0) + (config.centerSub2 ? 1 : 0);
+  const lineH = config.fontSize * 0.95;
+
+  const centerLineY = (idx: number) => {
+    // idx: 0 = centerText, 1 = centerSub, 2 = centerSub2
+    if (centerLinesCount === 1) return centerY;
+    if (centerLinesCount === 2) return centerY + (idx === 0 ? -lineH / 2 : lineH / 2);
+    return centerY + (idx - 1) * lineH;
+  };
+
   const symbolR = config.outerRadius + (outerBorderR - config.outerRadius) / 2 + 4;
 
   return (
@@ -129,8 +148,8 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
       {config.centerText && (
         <text
           x={c}
-          y={centerY - (config.centerSub ? centerGap : 0)}
-          fontSize={config.fontSize + 4}
+          y={centerLineY(0)}
+          fontSize={config.fontSize + 2}
           fontFamily={config.font}
           fontWeight={700}
           fill="#000"
@@ -144,15 +163,29 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
       {config.centerSub && (
         <text
           x={c}
-          y={centerY + centerGap}
-          fontSize={config.fontSize - 2}
+          y={centerLineY(1)}
+          fontSize={config.fontSize + 1}
           fontFamily={config.font}
-          fontWeight={500}
+          fontWeight={600}
           fill="#000"
           textAnchor="middle"
           dominantBaseline="central"
         >
           {config.centerSub}
+        </text>
+      )}
+      {config.centerSub2 && (
+        <text
+          x={c}
+          y={centerLineY(2)}
+          fontSize={config.fontSize + 1}
+          fontFamily={config.font}
+          fontWeight={600}
+          fill="#000"
+          textAnchor="middle"
+          dominantBaseline="central"
+        >
+          {config.centerSub2}
         </text>
       )}
     </svg>
