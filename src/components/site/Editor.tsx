@@ -19,8 +19,8 @@ interface Osnastka {
 
 const OSNASTKI: Osnastka[] = [
   { id: 'trodat-printy-4642', name: 'Trodat Printy 4642', shape: 'circle', price: 690, sizes: [30, 35, 38, 40, 42, 45, 50] },
-  { id: 'colop-r40', name: 'Colop R40', shape: 'circle', price: 750, sizes: [30, 35, 38, 40, 42, 45, 50] },
-  { id: 'trodat-micro-9342', name: 'Trodat Micro Printy 9342 (карманная)', shape: 'circle', price: 590, sizes: [22] },
+  { id: 'colop-r40', name: 'Colop R40', shape: 'circle', price: 750, sizes: [30, 35, 38, 40] },
+  { id: 'trodat-micro-9342', name: 'Trodat Micro Printy 9342 (карманная)', shape: 'circle', price: 590, sizes: [22, 30, 35, 38, 40] },
   { id: 'square-holder', name: 'Оснастка 4924', shape: 'square', price: 820, sizes: [38, 40, 45] },
   { id: 'triangle-holder', name: 'Треугольная оснастка', shape: 'triangle', price: 890, sizes: [40, 45, 50] },
 ];
@@ -36,7 +36,7 @@ interface PresetDef {
 
 const PRESETS: Record<string, PresetDef> = {
   ip_photo: {
-    label: 'ИП 1',
+    label: 'ИП',
     config: {
       shape: 'circle',
       topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ',
@@ -53,43 +53,6 @@ const PRESETS: Record<string, PresetDef> = {
       border: 'single',
       showInnerRing: false,
       showCenterRing: false,
-    },
-  },
-  ip_photo2: {
-    label: 'ИП 2',
-    config: {
-      shape: 'circle',
-      topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ',
-      bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА',
-      innerTopText: 'ОГРНИП 115774000000',
-      innerBottomText: 'ИНН 7745550000',
-      centerText: 'Носов',
-      centerSub: 'Илья',
-      centerSub2: 'Олегович',
-      symbol: 'none',
-      border: 'single',
-      showInnerRing: true,
-      showCenterRing: true,
-    },
-  },
-  ip_photo3: {
-    label: 'ИП 3',
-    config: {
-      shape: 'circle',
-      topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ',
-      bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА',
-      innerTopText: 'ОГРНИП 115774000000',
-      innerBottomText: 'ИНН 7745550000',
-      centerText: 'Петров',
-      centerSub: 'Петр',
-      centerSub2: 'Андреевич',
-      symbol: 'star',
-      symbolRing: 'outer',
-      symbolAngle: 90,
-      symbolMirror: true,
-      border: 'single',
-      showInnerRing: true,
-      showCenterRing: true,
     },
   },
   ooo: {
@@ -155,42 +118,6 @@ const PRESETS: Record<string, PresetDef> = {
       border: 'single',
     },
   },
-  square1: {
-    label: 'Квадрат 1',
-    config: {
-      shape: 'square',
-      topText: '',
-      bottomText: '',
-      centerText: 'КОПИЯ',
-      centerSub: 'ВЕРНА',
-      centerSub2: '',
-      border: 'single',
-    },
-  },
-  square2: {
-    label: 'Квадрат 2',
-    config: {
-      shape: 'square',
-      topText: '',
-      bottomText: '',
-      centerText: 'ОПЛАЧЕНО',
-      centerSub: '',
-      centerSub2: '',
-      border: 'double',
-    },
-  },
-  square3: {
-    label: 'Квадрат 3',
-    config: {
-      shape: 'square',
-      topText: '',
-      bottomText: '',
-      centerText: 'ДОКУМЕНТЫ',
-      centerSub: 'ПОЛУЧЕНЫ',
-      centerSub2: '',
-      border: 'dashed',
-    },
-  },
 };
 
 const PRESET_KEYS = Object.keys(PRESETS);
@@ -235,6 +162,7 @@ const Editor = ({ onAddToCart }: EditorProps) => {
   const [osnastkaSize, setOsnastkaSize] = useState(OSNASTKI[0].sizes[Math.floor(OSNASTKI[0].sizes.length / 2)]);
   const [urgent, setUrgent] = useState(false);
   const [readyAt, setReadyAt] = useState('');
+  const [kit, setKit] = useState<'both' | 'cleshe' | 'osnastka'>('both');
 
   const set = <K extends keyof StampConfig>(k: K, v: StampConfig[K]) =>
     setConfig((p) => ({ ...p, [k]: v }));
@@ -275,16 +203,25 @@ const Editor = ({ onAddToCart }: EditorProps) => {
 
   const clashe = cleshePrice(config.shape);
   const osnastkaPrice = osnastka.price + sizePriceAdd(osnastka.sizes[0], osnastkaSize);
+  const includeCleshe = kit !== 'osnastka';
+  const includeOsnastka = kit !== 'cleshe';
   const total = useMemo(() => {
-    const base = clashe + osnastkaPrice;
+    const base = (includeCleshe ? clashe : 0) + (includeOsnastka ? osnastkaPrice : 0);
     return urgent ? base * 2 : base;
-  }, [clashe, osnastkaPrice, urgent]);
+  }, [clashe, osnastkaPrice, urgent, includeCleshe, includeOsnastka]);
+
+  const kitLabel = kit === 'both' ? 'Клеше + оснастка' : kit === 'cleshe' ? 'Только клеше' : 'Только оснастка';
 
   const handleAdd = () => {
+    const shapeName = config.shape === 'circle' ? 'круглая' : config.shape === 'square' ? 'квадратная' : 'треугольная';
+    const title =
+      kit === 'osnastka'
+        ? `Оснастка ${osnastka.name} Ø${osnastkaSize}мм`
+        : `Печать ${shapeName}${kit === 'both' ? ` · ${osnastka.name} Ø${osnastkaSize}мм` : ''}`;
     onAddToCart({
       id: `${Date.now()}`,
-      title: `Печать ${config.shape === 'circle' ? 'круглая' : config.shape === 'square' ? 'квадратная' : 'треугольная'} · ${osnastka.name} Ø${osnastkaSize}мм`,
-      subtitle: `Клеше + оснастка${urgent ? ' · СРОЧНО' : ''}`,
+      title,
+      subtitle: `${kitLabel}${urgent ? ' · СРОЧНО' : ''}`,
       price: total,
       qty: 1,
     });
@@ -317,11 +254,39 @@ const Editor = ({ onAddToCart }: EditorProps) => {
                 <Icon name="Receipt" size={16} className="text-primary" />
                 Стоимость и исполнение
               </div>
+
+              <div>
+                <Label className="mb-1.5 block text-xs text-muted-foreground">Что заказываете</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {([
+                    { v: 'both', label: 'Клеше + оснастка' },
+                    { v: 'cleshe', label: 'Только клеше' },
+                    { v: 'osnastka', label: 'Только оснастка' },
+                  ] as const).map((k) => (
+                    <button
+                      key={k.v}
+                      onClick={() => setKit(k.v)}
+                      className={`rounded-lg border p-2 text-xs transition ${kit === k.v ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/50'}`}
+                    >
+                      {k.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-2 text-sm">
-                <span className="text-muted-foreground">Клеше ({config.shape})</span>
-                <span className="text-right">{clashe} ₽</span>
-                <span className="text-muted-foreground">Оснастка Ø{osnastkaSize}мм</span>
-                <span className="text-right">{osnastkaPrice} ₽</span>
+                {includeCleshe && (
+                  <>
+                    <span className="text-muted-foreground">Клеше ({config.shape})</span>
+                    <span className="text-right">{clashe} ₽</span>
+                  </>
+                )}
+                {includeOsnastka && (
+                  <>
+                    <span className="text-muted-foreground">Оснастка Ø{osnastkaSize}мм</span>
+                    <span className="text-right">{osnastkaPrice} ₽</span>
+                  </>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-2">

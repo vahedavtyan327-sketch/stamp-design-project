@@ -2,7 +2,7 @@ import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 
 const HERO_IMG =
-  'https://cdn.poehali.dev/projects/7f21717d-d583-4317-a94d-0d54cb052dc7/files/54139648-358c-4753-8a9c-715202130158.jpg';
+  'https://cdn.poehali.dev/projects/7f21717d-d583-4317-a94d-0d54cb052dc7/files/8b989a3d-f726-4b11-97c9-06df4eea2ab3.jpg';
 
 const STATS = [
   { value: '15 мин', label: 'срочное изготовление' },
