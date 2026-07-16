@@ -1,3 +1,5 @@
+import { useRef, useState } from 'react';
+
 export interface StampConfig {
   shape: 'circle' | 'square' | 'triangle';
   size: number;
@@ -34,11 +36,64 @@ const SYMBOLS: Record<string, string> = {
   diamond: '◆',
 };
 
-const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: number }) => {
+export type EditableField =
+  | 'topText'
+  | 'bottomText'
+  | 'innerTopText'
+  | 'innerBottomText'
+  | 'centerText'
+  | 'centerSub'
+  | 'centerSub2';
+
+interface StampPreviewProps {
+  config: StampConfig;
+  size?: number;
+  onTextChange?: (field: EditableField, value: string) => void;
+}
+
+const StampPreview = ({ config, size = 320, onTextChange }: StampPreviewProps) => {
   const c = 160;
   const outerBorderR = 150;
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [editing, setEditing] = useState<{
+    field: EditableField;
+    original: string;
+    value: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null>(null);
 
-  const renderArcText = (text: string, position: 'top' | 'bottom', radius: number) => {
+  const editable = !!onTextChange;
+
+  const getScale = () => {
+    const rect = svgRef.current?.getBoundingClientRect();
+    return rect && rect.width ? rect.width / 320 : size / 320;
+  };
+
+  const startEdit = (field: EditableField, el: SVGGraphicsElement, initial: string) => {
+    if (!editable) return;
+    const bbox = el.getBBox();
+    const scale = getScale();
+    setEditing({
+      field,
+      original: initial,
+      value: initial,
+      x: bbox.x * scale - 6,
+      y: bbox.y * scale - 4,
+      width: Math.max(bbox.width * scale + 12, 50),
+      height: Math.max(bbox.height * scale + 8, 22),
+    });
+  };
+
+  const commitEdit = () => setEditing(null);
+  const cancelEdit = () => {
+    if (editing) onTextChange?.(editing.field, editing.original);
+    setEditing(null);
+  };
+
+  const renderArcText = (text: string, position: 'top' | 'bottom', radius: number, field: EditableField) => {
     if (!text) return null;
     const chars = text.split('');
 
@@ -48,33 +103,41 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
     const totalAngle = Math.min(anglePerChar * chars.length, 210);
 
     const isTop = position === 'top';
-    const startAngle = isTop ? -90 - totalAngle / 2 : 90 - totalAngle / 2;
+    // startAngle/step are defined so characters always progress left-to-right
+    // along the arc, whether the arc sits above (top) or below (bottom) center
+    const startAngle = isTop ? -90 - totalAngle / 2 : 90 + totalAngle / 2;
     const step = chars.length > 1 ? totalAngle / (chars.length - 1) : 0;
 
-    return chars.map((ch, i) => {
-      const angle = (startAngle + step * i) * (Math.PI / 180);
-      const x = c + radius * Math.cos(angle);
-      const y = c + radius * Math.sin(angle);
-      const rot = isTop
-        ? (startAngle + step * i) + 90
-        : (startAngle + step * i) - 90;
-      return (
-        <text
-          key={`${position}-${radius}-${i}`}
-          x={x}
-          y={y}
-          fontSize={config.fontSize}
-          fontFamily={config.font}
-          fontWeight={600}
-          fill="#000"
-          textAnchor="middle"
-          dominantBaseline="central"
-          transform={`rotate(${rot} ${x} ${y})`}
-        >
-          {ch}
-        </text>
-      );
-    });
+    return (
+      <g
+        className={editable ? 'cursor-pointer' : undefined}
+        onClick={editable ? (e) => startEdit(field, e.currentTarget, text) : undefined}
+      >
+        {chars.map((ch, i) => {
+          const angleDeg = isTop ? startAngle + step * i : startAngle - step * i;
+          const angle = angleDeg * (Math.PI / 180);
+          const x = c + radius * Math.cos(angle);
+          const y = c + radius * Math.sin(angle);
+          const rot = isTop ? angleDeg + 90 : angleDeg - 90;
+          return (
+            <text
+              key={`${position}-${radius}-${i}`}
+              x={x}
+              y={y}
+              fontSize={config.fontSize}
+              fontFamily={config.font}
+              fontWeight={600}
+              fill="#000"
+              textAnchor="middle"
+              dominantBaseline="central"
+              transform={`rotate(${rot} ${x} ${y})`}
+            >
+              {ch}
+            </text>
+          );
+        })}
+      </g>
+    );
   };
 
   const borderEls = () => {
@@ -143,104 +206,113 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
   const symbolAngleRad = ((config.symbolAngle - 90) * Math.PI) / 180;
   const mirrorAngleRad = ((config.symbolAngle + 180 - 90) * Math.PI) / 180;
 
-  return (
-    <svg
-      viewBox="0 0 320 320"
-      width={size}
-      height={size}
-      className="mx-auto max-w-full"
-      style={{ background: '#fff', borderRadius: 12 }}
+  const centerTextEl = (field: EditableField, text: string, y: number, fontSize: number, weight: number) => (
+    <text
+      x={c}
+      y={y}
+      fontSize={fontSize}
+      fontFamily={config.font}
+      fontWeight={weight}
+      fill="#000"
+      textAnchor="middle"
+      dominantBaseline="central"
+      letterSpacing={field === 'centerText' ? config.letterSpacing / 3 : undefined}
+      className={editable ? 'cursor-pointer' : undefined}
+      onClick={editable ? (e) => startEdit(field, e.currentTarget, text) : undefined}
     >
-      {borderEls()}
+      {text}
+    </text>
+  );
 
-      {config.shape === 'circle' && (
-        <>
-          {renderArcText(config.topText, 'top', config.outerRadius)}
-          {renderArcText(config.bottomText, 'bottom', config.outerRadius)}
-          {renderArcText(config.innerTopText, 'top', config.innerRadius)}
-          {renderArcText(config.innerBottomText, 'bottom', config.innerRadius)}
-          {config.symbol !== 'none' && (
-            <>
-              <text
-                x={c + symbolR * Math.cos(symbolAngleRad)}
-                y={c + symbolR * Math.sin(symbolAngleRad) + 6}
-                fontSize={20}
-                textAnchor="middle"
-                fill="#000"
-              >
-                {SYMBOLS[config.symbol]}
-              </text>
-              {config.symbolMirror && (
+  return (
+    <div className="relative mx-auto" style={{ width: size, maxWidth: '100%' }}>
+      <svg
+        ref={svgRef}
+        viewBox="0 0 320 320"
+        width={size}
+        height={size}
+        className="mx-auto max-w-full"
+        style={{ background: '#fff', borderRadius: 12 }}
+      >
+        {borderEls()}
+
+        {config.shape === 'circle' && (
+          <>
+            {renderArcText(config.topText, 'top', config.outerRadius, 'topText')}
+            {renderArcText(config.bottomText, 'bottom', config.outerRadius, 'bottomText')}
+            {renderArcText(config.innerTopText, 'top', config.innerRadius, 'innerTopText')}
+            {renderArcText(config.innerBottomText, 'bottom', config.innerRadius, 'innerBottomText')}
+            {config.symbol !== 'none' && (
+              <>
                 <text
-                  x={c + symbolR * Math.cos(mirrorAngleRad)}
-                  y={c + symbolR * Math.sin(mirrorAngleRad) + 6}
+                  x={c + symbolR * Math.cos(symbolAngleRad)}
+                  y={c + symbolR * Math.sin(symbolAngleRad)}
                   fontSize={20}
                   textAnchor="middle"
+                  dominantBaseline="central"
                   fill="#000"
                 >
                   {SYMBOLS[config.symbol]}
                 </text>
-              )}
-            </>
-          )}
-        </>
-      )}
+                {config.symbolMirror && (
+                  <text
+                    x={c + symbolR * Math.cos(mirrorAngleRad)}
+                    y={c + symbolR * Math.sin(mirrorAngleRad)}
+                    fontSize={20}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fill="#000"
+                  >
+                    {SYMBOLS[config.symbol]}
+                  </text>
+                )}
+              </>
+            )}
+          </>
+        )}
 
-      {hasLogo && (
-        <image
-          href={config.logo}
-          x={c - config.logoSize / 2}
-          y={baseCenterY - logoOffset / 2 - config.logoSize / 2}
-          width={config.logoSize}
-          height={config.logoSize}
-          preserveAspectRatio="xMidYMid meet"
+        {hasLogo && (
+          <image
+            href={config.logo}
+            x={c - config.logoSize / 2}
+            y={baseCenterY - logoOffset / 2 - config.logoSize / 2}
+            width={config.logoSize}
+            height={config.logoSize}
+            preserveAspectRatio="xMidYMid meet"
+          />
+        )}
+
+        {config.centerText && centerTextEl('centerText', config.centerText, centerLineY(0), config.fontSize + 2, 700)}
+        {config.centerSub && centerTextEl('centerSub', config.centerSub, centerLineY(1), config.fontSize + 1, 600)}
+        {config.centerSub2 && centerTextEl('centerSub2', config.centerSub2, centerLineY(2), config.fontSize + 1, 600)}
+      </svg>
+
+      {editing && (
+        <input
+          autoFocus
+          value={editing.value}
+          onChange={(e) => {
+            const value = e.target.value;
+            setEditing((p) => (p ? { ...p, value } : p));
+            onTextChange?.(editing.field, value);
+          }}
+          onBlur={commitEdit}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') commitEdit();
+            if (e.key === 'Escape') cancelEdit();
+          }}
+          style={{
+            position: 'absolute',
+            left: editing.x,
+            top: editing.y,
+            width: editing.width,
+            height: editing.height,
+            fontSize: 13,
+          }}
+          className="rounded border-2 border-primary bg-white px-1 text-black shadow-lg outline-none"
         />
       )}
-
-      {config.centerText && (
-        <text
-          x={c}
-          y={centerLineY(0)}
-          fontSize={config.fontSize + 2}
-          fontFamily={config.font}
-          fontWeight={700}
-          fill="#000"
-          textAnchor="middle"
-          dominantBaseline="central"
-          letterSpacing={config.letterSpacing / 3}
-        >
-          {config.centerText}
-        </text>
-      )}
-      {config.centerSub && (
-        <text
-          x={c}
-          y={centerLineY(1)}
-          fontSize={config.fontSize + 1}
-          fontFamily={config.font}
-          fontWeight={600}
-          fill="#000"
-          textAnchor="middle"
-          dominantBaseline="central"
-        >
-          {config.centerSub}
-        </text>
-      )}
-      {config.centerSub2 && (
-        <text
-          x={c}
-          y={centerLineY(2)}
-          fontSize={config.fontSize + 1}
-          fontFamily={config.font}
-          fontWeight={600}
-          fill="#000"
-          textAnchor="middle"
-          dominantBaseline="central"
-        >
-          {config.centerSub2}
-        </text>
-      )}
-    </svg>
+    </div>
   );
 };
 

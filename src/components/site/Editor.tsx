@@ -296,7 +296,10 @@ const Editor = ({ onAddToCart }: EditorProps) => {
           {/* Preview */}
           <div className="order-2 lg:order-1 rounded-2xl border border-border/60 bg-card/50 p-6 grid content-start gap-6">
             <div className="rounded-xl border border-border/60 bg-[#fff] p-6 flex items-center justify-center">
-              <StampPreview config={config} />
+              <StampPreview
+                config={config}
+                onTextChange={(field, value) => set(field, value)}
+              />
             </div>
 
             {/* Order type + price */}

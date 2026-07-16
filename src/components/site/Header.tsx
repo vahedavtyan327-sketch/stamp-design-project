@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
+import logo from '@/assets/logo.png';
 
 const NAV = [
   { label: 'Редактор', href: '#editor' },
@@ -23,9 +24,7 @@ const Header = ({ cartCount, onCartClick }: HeaderProps) => {
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
       <div className="container flex h-16 items-center justify-between gap-4">
         <a href="#top" className="flex items-center gap-2.5 shrink-0">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground glow">
-            <Icon name="Stamp" size={20} />
-          </div>
+          <img src={logo} alt="Stampcopy" className="h-9 w-9 rounded-lg" />
           <span className="font-display text-xl font-600 tracking-wide">
             STAMP<span className="text-primary">COPY</span>
           </span>

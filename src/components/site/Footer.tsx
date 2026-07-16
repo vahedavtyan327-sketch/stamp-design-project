@@ -1,4 +1,5 @@
 import Icon from '@/components/ui/icon';
+import logo from '@/assets/logo.png';
 
 const Footer = () => (
   <footer className="border-t border-border/60 bg-card/30">
@@ -6,9 +7,7 @@ const Footer = () => (
       <div className="grid gap-8 md:grid-cols-[1.5fr_1fr_1fr]">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Icon name="Stamp" size={20} />
-            </div>
+            <img src={logo} alt="Stampcopy" className="h-9 w-9 rounded-lg" />
             <span className="font-display text-xl font-600 tracking-wide">
               STAMP<span className="text-primary">COPY</span>
             </span>
@@ -42,7 +41,21 @@ const Footer = () => (
         </div>
       </div>
 
-      <div className="mt-10 border-t border-border/60 pt-6 text-center text-xs text-muted-foreground">
+      <div className="mt-10 border-t border-border/60 pt-6">
+        <h4 className="font-display text-sm font-600 uppercase tracking-wide text-muted-foreground">Способы оплаты</h4>
+        <div className="mt-3 flex flex-wrap gap-3">
+          <span className="flex items-center gap-2 rounded-lg border border-border/60 px-3 py-2 text-sm text-muted-foreground">
+            <Icon name="Banknote" size={16} className="text-primary" />
+            Наличными при получении
+          </span>
+          <span className="flex items-center gap-2 rounded-lg border border-border/60 px-3 py-2 text-sm text-muted-foreground">
+            <Icon name="Landmark" size={16} className="text-primary" />
+            Переводом на счёт
+          </span>
+        </div>
+      </div>
+
+      <div className="mt-6 border-t border-border/60 pt-6 text-center text-xs text-muted-foreground">
         © {new Date().getFullYear()} Stampcopy. Все права защищены.
       </div>
     </div>
