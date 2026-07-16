@@ -34,8 +34,28 @@ interface PresetDef {
 }
 
 const PRESETS: Record<string, PresetDef> = {
+  ip_sample1: {
+    label: 'ИП образец 1',
+    config: {
+      shape: 'circle',
+      topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ',
+      bottomText: 'ОГРНИП 000000000000',
+      innerTopText: '',
+      innerBottomText: '',
+      centerText: 'Петров',
+      centerSub: 'Олег',
+      centerSub2: 'Иванович',
+      symbol: 'star',
+      symbolRing: 'outer',
+      symbolAngle: 90,
+      symbolMirror: true,
+      border: 'single',
+      showInnerRing: false,
+      showCenterRing: false,
+    },
+  },
   ip: {
-    label: 'ИП',
+    label: 'ИП образец 2',
     config: {
       shape: 'circle',
       topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ',
@@ -46,6 +66,26 @@ const PRESETS: Record<string, PresetDef> = {
       centerSub: 'Илья',
       centerSub2: 'Олегович',
       symbol: 'none',
+      border: 'single',
+      showInnerRing: true,
+      showCenterRing: true,
+    },
+  },
+  ip_sample3: {
+    label: 'ИП образец 3',
+    config: {
+      shape: 'circle',
+      topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ',
+      bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА',
+      innerTopText: 'ОГРНИП 115774000000',
+      innerBottomText: 'ИНН 7745550000',
+      centerText: 'Петров',
+      centerSub: 'Петр',
+      centerSub2: 'Андреевич',
+      symbol: 'star',
+      symbolRing: 'outer',
+      symbolAngle: 90,
+      symbolMirror: true,
       border: 'single',
       showInnerRing: true,
       showCenterRing: true,
@@ -184,6 +224,8 @@ const Editor = ({ onAddToCart }: EditorProps) => {
     border: 'single',
     symbol: 'star',
     symbolAngle: 15,
+    symbolRing: 'outer',
+    symbolMirror: true,
     font: 'Golos Text',
     logo: '',
     logoSize: 60,
@@ -495,10 +537,10 @@ const Editor = ({ onAddToCart }: EditorProps) => {
                 )}
                 {config.symbol !== 'none' && (
                   <SliderRow
-                    label="Положение символов по кругу"
+                    label="Положение символа по кругу"
                     value={config.symbolAngle}
-                    min={5}
-                    max={80}
+                    min={0}
+                    max={359}
                     onChange={(v) => set('symbolAngle', v)}
                     unit="°"
                   />
@@ -535,7 +577,7 @@ const Editor = ({ onAddToCart }: EditorProps) => {
 
             {/* symbol */}
             <div>
-              <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Символ по бокам</Label>
+              <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Символ-разделитель</Label>
               <div className="grid grid-cols-5 gap-2">
                 {(['none', 'star', 'star8', 'dot', 'diamond'] as const).map((s) => (
                   <button
@@ -548,6 +590,34 @@ const Editor = ({ onAddToCart }: EditorProps) => {
                 ))}
               </div>
             </div>
+
+            {/* symbol placement */}
+            {config.shape === 'circle' && config.symbol !== 'none' && (
+              <div>
+                <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Кольцо для символа</Label>
+                <div className="grid grid-cols-3 gap-2 mb-2">
+                  {([
+                    { v: 'outer', label: 'Внешнее' },
+                    { v: 'inner', label: 'Внутреннее' },
+                    { v: 'center', label: 'Центральное' },
+                  ] as const).map((r) => (
+                    <button
+                      key={r.v}
+                      onClick={() => set('symbolRing', r.v)}
+                      className={`rounded-lg border p-2 text-xs transition ${config.symbolRing === r.v ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
+                    >
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => set('symbolMirror', !config.symbolMirror)}
+                  className={`w-full rounded-lg border p-2 text-xs transition ${config.symbolMirror ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
+                >
+                  Зеркально с другой стороны
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

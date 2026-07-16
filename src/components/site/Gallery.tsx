@@ -3,13 +3,13 @@ import StampPreview, { StampConfig } from './StampPreview';
 const base: StampConfig = {
   shape: 'circle', size: 40, topText: '', bottomText: '', innerTopText: '', innerBottomText: '', centerText: '', centerSub: '', centerSub2: '',
   fontSize: 14, letterSpacing: 2, outerRadius: 130, innerRadius: 95, centerRadius: 62, ringGap: 14,
-  showOuterRing: true, showInnerRing: false, showCenterRing: false, border: 'single', symbol: 'star', symbolAngle: 15, font: 'Golos Text',
+  showOuterRing: true, showInnerRing: false, showCenterRing: false, border: 'single', symbol: 'star', symbolAngle: 90, symbolRing: 'outer', symbolMirror: true, font: 'Golos Text',
   logo: '', logoSize: 60,
 };
 
 const SAMPLES: StampConfig[] = [
   { ...base, showInnerRing: true, showCenterRing: true, topText: 'ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', bottomText: 'ГОРОД МОСКВА', innerTopText: 'ОГРН 5127746000000', innerBottomText: 'ИНН 7700000000', centerText: '«АЛЬФА ТРЕЙД»' },
-  { ...base, showInnerRing: true, showCenterRing: true, symbol: 'none', topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ', innerTopText: 'ОГРНИП 770000000000', innerBottomText: 'ИНН 770000000000', centerText: 'Смирнов', centerSub: 'Алексей', centerSub2: 'Викторович' },
+  { ...base, showInnerRing: false, showCenterRing: false, symbol: 'star', topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ', bottomText: 'ОГРНИП 770000000000', centerText: 'Смирнов', centerSub: 'Алексей', centerSub2: 'Викторович' },
   { ...base, showInnerRing: true, showCenterRing: true, border: 'double', symbol: 'dot', topText: 'ВРАЧ-КАРДИОЛОГ', bottomText: 'КЛИНИКА «ЗДОРОВЬЕ»', innerTopText: 'ЛИЦЕНЗИЯ ЛО-77', centerText: 'Козлова', centerSub: 'Мария', centerSub2: 'Игоревна' },
   { ...base, shape: 'triangle', centerText: 'ОПЛАЧЕНО', centerSub: 'касса №2' },
   { ...base, shape: 'square', centerText: 'КОПИЯ', centerSub: 'ВЕРНА', border: 'dashed' },

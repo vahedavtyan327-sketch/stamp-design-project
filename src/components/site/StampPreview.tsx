@@ -20,6 +20,8 @@ export interface StampConfig {
   border: 'single' | 'double' | 'dashed' | 'none';
   symbol: 'none' | 'star' | 'star8' | 'dot' | 'diamond';
   symbolAngle: number;
+  symbolRing: 'outer' | 'inner' | 'center';
+  symbolMirror: boolean;
   font: string;
   logo: string;
   logoSize: number;
@@ -131,10 +133,15 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
     return centerY + (idx - 1) * lineH;
   };
 
-  const symbolR = config.outerRadius + (outerBorderR - config.outerRadius) / 2 + 4;
-  const symbolAngleRad = (config.symbolAngle * Math.PI) / 180;
-  const symLeftAngle = Math.PI - symbolAngleRad;
-  const symRightAngle = symbolAngleRad;
+  const ringRadius: Record<StampConfig['symbolRing'], number> = {
+    outer: config.outerRadius + (outerBorderR - config.outerRadius) / 2 + 4,
+    inner: config.innerRadius + config.ringGap,
+    center: config.centerRadius,
+  };
+  const symbolR = ringRadius[config.symbolRing] ?? ringRadius.outer;
+  // angle measured clockwise from the top (12 o'clock)
+  const symbolAngleRad = ((config.symbolAngle - 90) * Math.PI) / 180;
+  const mirrorAngleRad = ((config.symbolAngle + 180 - 90) * Math.PI) / 180;
 
   return (
     <svg
@@ -155,23 +162,25 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
           {config.symbol !== 'none' && (
             <>
               <text
-                x={c + symbolR * Math.cos(symLeftAngle)}
-                y={c + symbolR * Math.sin(symLeftAngle) + 6}
+                x={c + symbolR * Math.cos(symbolAngleRad)}
+                y={c + symbolR * Math.sin(symbolAngleRad) + 6}
                 fontSize={20}
                 textAnchor="middle"
                 fill="#000"
               >
                 {SYMBOLS[config.symbol]}
               </text>
-              <text
-                x={c + symbolR * Math.cos(symRightAngle)}
-                y={c + symbolR * Math.sin(symRightAngle) + 6}
-                fontSize={20}
-                textAnchor="middle"
-                fill="#000"
-              >
-                {SYMBOLS[config.symbol]}
-              </text>
+              {config.symbolMirror && (
+                <text
+                  x={c + symbolR * Math.cos(mirrorAngleRad)}
+                  y={c + symbolR * Math.sin(mirrorAngleRad) + 6}
+                  fontSize={20}
+                  textAnchor="middle"
+                  fill="#000"
+                >
+                  {SYMBOLS[config.symbol]}
+                </text>
+              )}
             </>
           )}
         </>
