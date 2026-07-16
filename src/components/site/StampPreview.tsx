@@ -13,18 +13,11 @@ export interface StampConfig {
   outerRadius: number;
   innerRadius: number;
   centerRadius: number;
-  ringGap: number;
-  showOuterRing: boolean;
   showInnerRing: boolean;
   showCenterRing: boolean;
   border: 'single' | 'double' | 'dashed' | 'none';
   symbol: 'none' | 'star' | 'star8' | 'dot' | 'diamond';
-  symbolAngle: number;
-  symbolRing: 'outer' | 'inner' | 'center';
-  symbolMirror: boolean;
   font: string;
-  logo: string;
-  logoSize: number;
 }
 
 const SYMBOLS: Record<string, string> = {
@@ -81,16 +74,12 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
     if (config.shape === 'circle') {
       return (
         <>
-          {config.showOuterRing && (
-            <>
-              <circle cx={c} cy={c} r={outerBorderR} fill="none" stroke="#000" strokeWidth={config.border === 'none' ? 0 : 4} strokeDasharray={config.border === 'dashed' ? '10 6' : undefined} />
-              {config.border === 'double' && (
-                <circle cx={c} cy={c} r={outerBorderR - 10} fill="none" stroke="#000" strokeWidth={2} />
-              )}
-            </>
+          <circle cx={c} cy={c} r={outerBorderR} fill="none" stroke="#000" strokeWidth={config.border === 'none' ? 0 : 4} strokeDasharray={config.border === 'dashed' ? '10 6' : undefined} />
+          {config.border === 'double' && (
+            <circle cx={c} cy={c} r={outerBorderR - 10} fill="none" stroke="#000" strokeWidth={2} />
           )}
           {config.showInnerRing && (
-            <circle cx={c} cy={c} r={config.innerRadius + config.ringGap} fill="none" stroke="#000" strokeWidth={1.5} />
+            <circle cx={c} cy={c} r={config.innerRadius + 14} fill="none" stroke="#000" strokeWidth={1.5} />
           )}
           {config.showCenterRing && (
             <circle cx={c} cy={c} r={config.centerRadius} fill="none" stroke="#000" strokeWidth={1.5} />
@@ -118,11 +107,7 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
     );
   };
 
-  const hasLogo = !!config.logo;
-  const logoOffset = hasLogo ? config.logoSize / 2 + 10 : 0;
-
-  const baseCenterY = config.shape === 'triangle' ? 200 : c;
-  const centerY = baseCenterY + logoOffset / 2;
+  const centerY = config.shape === 'triangle' ? 200 : c;
   const centerLinesCount = 1 + (config.centerSub ? 1 : 0) + (config.centerSub2 ? 1 : 0);
   const lineH = config.fontSize * 0.95;
 
@@ -133,15 +118,7 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
     return centerY + (idx - 1) * lineH;
   };
 
-  const ringRadius: Record<StampConfig['symbolRing'], number> = {
-    outer: config.outerRadius + (outerBorderR - config.outerRadius) / 2 + 4,
-    inner: config.innerRadius + config.ringGap,
-    center: config.centerRadius,
-  };
-  const symbolR = ringRadius[config.symbolRing] ?? ringRadius.outer;
-  // angle measured clockwise from the top (12 o'clock)
-  const symbolAngleRad = ((config.symbolAngle - 90) * Math.PI) / 180;
-  const mirrorAngleRad = ((config.symbolAngle + 180 - 90) * Math.PI) / 180;
+  const symbolR = config.outerRadius + (outerBorderR - config.outerRadius) / 2 + 4;
 
   return (
     <svg
@@ -161,40 +138,11 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
           {renderArcText(config.innerBottomText, 'bottom', config.innerRadius)}
           {config.symbol !== 'none' && (
             <>
-              <text
-                x={c + symbolR * Math.cos(symbolAngleRad)}
-                y={c + symbolR * Math.sin(symbolAngleRad) + 6}
-                fontSize={20}
-                textAnchor="middle"
-                fill="#000"
-              >
-                {SYMBOLS[config.symbol]}
-              </text>
-              {config.symbolMirror && (
-                <text
-                  x={c + symbolR * Math.cos(mirrorAngleRad)}
-                  y={c + symbolR * Math.sin(mirrorAngleRad) + 6}
-                  fontSize={20}
-                  textAnchor="middle"
-                  fill="#000"
-                >
-                  {SYMBOLS[config.symbol]}
-                </text>
-              )}
+              <text x={c - symbolR} y={c + 6} fontSize={20} textAnchor="middle" fill="#000">{SYMBOLS[config.symbol]}</text>
+              <text x={c + symbolR} y={c + 6} fontSize={20} textAnchor="middle" fill="#000">{SYMBOLS[config.symbol]}</text>
             </>
           )}
         </>
-      )}
-
-      {hasLogo && (
-        <image
-          href={config.logo}
-          x={c - config.logoSize / 2}
-          y={baseCenterY - logoOffset / 2 - config.logoSize / 2}
-          width={config.logoSize}
-          height={config.logoSize}
-          preserveAspectRatio="xMidYMid meet"
-        />
       )}
 
       {config.centerText && (
