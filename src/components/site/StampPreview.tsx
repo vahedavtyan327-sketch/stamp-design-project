@@ -13,11 +13,16 @@ export interface StampConfig {
   outerRadius: number;
   innerRadius: number;
   centerRadius: number;
+  ringGap: number;
+  showOuterRing: boolean;
   showInnerRing: boolean;
   showCenterRing: boolean;
   border: 'single' | 'double' | 'dashed' | 'none';
   symbol: 'none' | 'star' | 'star8' | 'dot' | 'diamond';
+  symbolAngle: number;
   font: string;
+  logo: string;
+  logoSize: number;
 }
 
 const SYMBOLS: Record<string, string> = {
@@ -74,12 +79,16 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
     if (config.shape === 'circle') {
       return (
         <>
-          <circle cx={c} cy={c} r={outerBorderR} fill="none" stroke="#000" strokeWidth={config.border === 'none' ? 0 : 4} strokeDasharray={config.border === 'dashed' ? '10 6' : undefined} />
-          {config.border === 'double' && (
-            <circle cx={c} cy={c} r={outerBorderR - 10} fill="none" stroke="#000" strokeWidth={2} />
+          {config.showOuterRing && (
+            <>
+              <circle cx={c} cy={c} r={outerBorderR} fill="none" stroke="#000" strokeWidth={config.border === 'none' ? 0 : 4} strokeDasharray={config.border === 'dashed' ? '10 6' : undefined} />
+              {config.border === 'double' && (
+                <circle cx={c} cy={c} r={outerBorderR - 10} fill="none" stroke="#000" strokeWidth={2} />
+              )}
+            </>
           )}
           {config.showInnerRing && (
-            <circle cx={c} cy={c} r={config.innerRadius + 14} fill="none" stroke="#000" strokeWidth={1.5} />
+            <circle cx={c} cy={c} r={config.innerRadius + config.ringGap} fill="none" stroke="#000" strokeWidth={1.5} />
           )}
           {config.showCenterRing && (
             <circle cx={c} cy={c} r={config.centerRadius} fill="none" stroke="#000" strokeWidth={1.5} />
@@ -107,7 +116,11 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
     );
   };
 
-  const centerY = config.shape === 'triangle' ? 200 : c;
+  const hasLogo = !!config.logo;
+  const logoOffset = hasLogo ? config.logoSize / 2 + 10 : 0;
+
+  const baseCenterY = config.shape === 'triangle' ? 200 : c;
+  const centerY = baseCenterY + logoOffset / 2;
   const centerLinesCount = 1 + (config.centerSub ? 1 : 0) + (config.centerSub2 ? 1 : 0);
   const lineH = config.fontSize * 0.95;
 
@@ -119,6 +132,9 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
   };
 
   const symbolR = config.outerRadius + (outerBorderR - config.outerRadius) / 2 + 4;
+  const symbolAngleRad = (config.symbolAngle * Math.PI) / 180;
+  const symLeftAngle = Math.PI - symbolAngleRad;
+  const symRightAngle = symbolAngleRad;
 
   return (
     <svg
@@ -138,11 +154,38 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
           {renderArcText(config.innerBottomText, 'bottom', config.innerRadius)}
           {config.symbol !== 'none' && (
             <>
-              <text x={c - symbolR} y={c + 6} fontSize={20} textAnchor="middle" fill="#000">{SYMBOLS[config.symbol]}</text>
-              <text x={c + symbolR} y={c + 6} fontSize={20} textAnchor="middle" fill="#000">{SYMBOLS[config.symbol]}</text>
+              <text
+                x={c + symbolR * Math.cos(symLeftAngle)}
+                y={c + symbolR * Math.sin(symLeftAngle) + 6}
+                fontSize={20}
+                textAnchor="middle"
+                fill="#000"
+              >
+                {SYMBOLS[config.symbol]}
+              </text>
+              <text
+                x={c + symbolR * Math.cos(symRightAngle)}
+                y={c + symbolR * Math.sin(symRightAngle) + 6}
+                fontSize={20}
+                textAnchor="middle"
+                fill="#000"
+              >
+                {SYMBOLS[config.symbol]}
+              </text>
             </>
           )}
         </>
+      )}
+
+      {hasLogo && (
+        <image
+          href={config.logo}
+          x={c - config.logoSize / 2}
+          y={baseCenterY - logoOffset / 2 - config.logoSize / 2}
+          width={config.logoSize}
+          height={config.logoSize}
+          preserveAspectRatio="xMidYMid meet"
+        />
       )}
 
       {config.centerText && (

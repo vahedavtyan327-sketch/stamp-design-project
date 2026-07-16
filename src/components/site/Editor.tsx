@@ -17,8 +17,9 @@ interface Osnastka {
 }
 
 const OSNASTKI: Osnastka[] = [
-  { id: 'trodat-circle', name: 'Trodat 46040', shape: 'circle', price: 690, sizes: [38, 40, 45] },
-  { id: 'colop-circle', name: 'Colop R40', shape: 'circle', price: 750, sizes: [38, 40, 45, 50] },
+  { id: 'trodat-printy-4642', name: 'Trodat Printy 4642', shape: 'circle', price: 690, sizes: [42] },
+  { id: 'colop-r40', name: 'Colop R40', shape: 'circle', price: 750, sizes: [40] },
+  { id: 'trodat-micro-9342', name: 'Trodat Micro Printy 9342 (карманная)', shape: 'circle', price: 590, sizes: [22] },
   { id: 'square-holder', name: 'Оснастка 4924', shape: 'square', price: 820, sizes: [38, 40, 45] },
   { id: 'triangle-holder', name: 'Треугольная оснастка', shape: 'triangle', price: 890, sizes: [40, 45, 50] },
 ];
@@ -176,14 +177,19 @@ const Editor = ({ onAddToCart }: EditorProps) => {
     outerRadius: 130,
     innerRadius: 95,
     centerRadius: 62,
+    ringGap: 14,
+    showOuterRing: true,
     showInnerRing: PRESETS.ip.config.showInnerRing ?? false,
     showCenterRing: PRESETS.ip.config.showCenterRing ?? false,
     border: 'single',
     symbol: 'star',
+    symbolAngle: 15,
     font: 'Golos Text',
+    logo: '',
+    logoSize: 60,
   });
   const [osnastka, setOsnastka] = useState(OSNASTKI[0]);
-  const [osnastkaSize, setOsnastkaSize] = useState(OSNASTKI[0].sizes[1]);
+  const [osnastkaSize, setOsnastkaSize] = useState(OSNASTKI[0].sizes[Math.floor(OSNASTKI[0].sizes.length / 2)]);
   const [urgent, setUrgent] = useState(false);
   const [readyAt, setReadyAt] = useState('');
 
@@ -214,6 +220,14 @@ const Editor = ({ onAddToCart }: EditorProps) => {
   const selectOsnastka = (o: Osnastka) => {
     setOsnastka(o);
     setOsnastkaSize(o.sizes[Math.floor(o.sizes.length / 2)]);
+  };
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => set('logo', reader.result as string);
+    reader.readAsDataURL(file);
   };
 
   const clashe = cleshePrice(config.shape);
@@ -339,10 +353,10 @@ const Editor = ({ onAddToCart }: EditorProps) => {
                   <button
                     key={o.id}
                     onClick={() => selectOsnastka(o)}
-                    className={`flex items-center justify-between rounded-lg border p-2.5 text-sm transition ${osnastka.id === o.id ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}`}
+                    className={`flex items-center justify-between gap-2 rounded-lg border p-2.5 text-sm transition ${osnastka.id === o.id ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}`}
                   >
-                    <span>{o.name}</span>
-                    <span className="text-primary">{o.price} ₽</span>
+                    <span className="text-left">{o.name}</span>
+                    <span className="shrink-0 text-primary">{o.price} ₽</span>
                   </button>
                 ))}
               </div>
@@ -368,7 +382,13 @@ const Editor = ({ onAddToCart }: EditorProps) => {
             {config.shape === 'circle' && (
               <div>
                 <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Кольца печати</Label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    onClick={() => set('showOuterRing', !config.showOuterRing)}
+                    className={`rounded-lg border p-2 text-xs transition ${config.showOuterRing ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
+                  >
+                    Внешний овал
+                  </button>
                   <button
                     onClick={() => set('showInnerRing', !config.showInnerRing)}
                     className={`rounded-lg border p-2 text-xs transition ${config.showInnerRing ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
@@ -384,6 +404,23 @@ const Editor = ({ onAddToCart }: EditorProps) => {
                 </div>
               </div>
             )}
+
+            {/* logo upload */}
+            <div>
+              <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Логотип или герб</Label>
+              <div className="flex items-center gap-3">
+                <label className="flex-1 cursor-pointer rounded-lg border border-dashed border-border p-2.5 text-center text-xs text-muted-foreground transition hover:border-primary/50">
+                  <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                  <Icon name="Upload" size={14} className="mr-1 inline" />
+                  {config.logo ? 'Заменить изображение' : 'Загрузить изображение'}
+                </label>
+                {config.logo && (
+                  <button onClick={() => set('logo', '')} className="text-muted-foreground hover:text-destructive">
+                    <Icon name="Trash2" size={16} />
+                  </button>
+                )}
+              </div>
+            </div>
 
             {/* text fields */}
             <div className="grid gap-3">
@@ -438,6 +475,14 @@ const Editor = ({ onAddToCart }: EditorProps) => {
                   onChange={(v) => set('innerRadius', Math.min(v, config.outerRadius - 20))}
                   unit="px"
                 />
+                <SliderRow
+                  label="Интервал между овалами"
+                  value={config.ringGap}
+                  min={6}
+                  max={24}
+                  onChange={(v) => set('ringGap', v)}
+                  unit="px"
+                />
                 {config.showCenterRing && (
                   <SliderRow
                     label="Центральный овал — радиус"
@@ -445,6 +490,26 @@ const Editor = ({ onAddToCart }: EditorProps) => {
                     min={40}
                     max={80}
                     onChange={(v) => set('centerRadius', v)}
+                    unit="px"
+                  />
+                )}
+                {config.symbol !== 'none' && (
+                  <SliderRow
+                    label="Положение символов по кругу"
+                    value={config.symbolAngle}
+                    min={5}
+                    max={80}
+                    onChange={(v) => set('symbolAngle', v)}
+                    unit="°"
+                  />
+                )}
+                {config.logo && (
+                  <SliderRow
+                    label="Размер логотипа"
+                    value={config.logoSize}
+                    min={30}
+                    max={110}
+                    onChange={(v) => set('logoSize', v)}
                     unit="px"
                   />
                 )}

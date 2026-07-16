@@ -5,7 +5,9 @@ import Icon from '@/components/ui/icon';
 
 const base: StampConfig = {
   shape: 'circle', size: 40, topText: '', bottomText: '', innerTopText: '', innerBottomText: '', centerText: '', centerSub: '', centerSub2: '',
-  fontSize: 14, letterSpacing: 2, outerRadius: 130, innerRadius: 95, centerRadius: 62, showInnerRing: false, showCenterRing: false, border: 'single', symbol: 'star', font: 'Golos Text',
+  fontSize: 14, letterSpacing: 2, outerRadius: 130, innerRadius: 95, centerRadius: 62, ringGap: 14,
+  showOuterRing: true, showInnerRing: false, showCenterRing: false, border: 'single', symbol: 'star', symbolAngle: 15, font: 'Golos Text',
+  logo: '', logoSize: 60,
 };
 
 const TEMPLATES: Record<string, StampConfig[]> = {
