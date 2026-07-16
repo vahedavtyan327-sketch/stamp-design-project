@@ -4,34 +4,38 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 
 const base: StampConfig = {
-  shape: 'circle', size: 40, topText: '', bottomText: '', centerText: '', centerSub: '',
-  fontSize: 14, letterSpacing: 2, textRadius: 130, border: 'single', symbol: 'star', font: 'Golos Text',
+  shape: 'circle', size: 40, topText: '', bottomText: '', innerTopText: '', innerBottomText: '', centerText: '', centerSub: '', centerSub2: '',
+  fontSize: 14, letterSpacing: 2, outerRadius: 130, innerRadius: 95, centerRadius: 62, ringGap: 14,
+  showOuterRing: true, showInnerRing: false, showCenterRing: false, border: 'single', symbol: 'star', symbolAngle: 90, symbolRing: 'outer', symbolMirror: true, font: 'Golos Text',
+  logo: '', logoSize: 60,
 };
 
 const TEMPLATES: Record<string, StampConfig[]> = {
-  'ООО': [
-    { ...base, topText: 'ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', bottomText: 'ГОРОД МОСКВА', centerText: 'РОМАШКА', centerSub: 'ОГРН 1234567890123' },
-    { ...base, topText: 'ООО «ТЕХНОЛОГИИ БУДУЩЕГО»', bottomText: 'ИНН 7700000000', centerText: 'ТБ', centerSub: 'г. Санкт-Петербург', border: 'double' },
-  ],
   'ИП': [
-    { ...base, topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ', bottomText: 'ОГРНИП 000000000000', centerText: 'ИВАНОВ', centerSub: 'ИВАН ИВАНОВИЧ' },
-    { ...base, topText: 'ИП ПЕТРОВ П. П.', bottomText: 'ИНН 770000000000', centerText: 'ПЕТРОВ', centerSub: 'ПАВЕЛ ПАВЛОВИЧ', symbol: 'diamond' },
+    { ...base, symbol: 'star', symbolRing: 'outer', symbolAngle: 90, symbolMirror: true, showInnerRing: false, showCenterRing: false, topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ', bottomText: 'ОГРНИП 000000000000', centerText: 'Петров', centerSub: 'Олег', centerSub2: 'Иванович' },
+    { ...base, symbol: 'none', showInnerRing: true, showCenterRing: true, topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА', innerTopText: 'ОГРНИП 115774000000', innerBottomText: 'ИНН 7745550000', centerText: 'Носов', centerSub: 'Илья', centerSub2: 'Олегович' },
+    { ...base, symbol: 'star', symbolRing: 'outer', symbolAngle: 90, symbolMirror: true, showInnerRing: true, showCenterRing: true, topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА', innerTopText: 'ОГРНИП 115774000000', innerBottomText: 'ИНН 7745550000', centerText: 'Петров', centerSub: 'Петр', centerSub2: 'Андреевич' },
+  ],
+  'ООО': [
+    { ...base, showInnerRing: true, showCenterRing: true, topText: 'ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА', innerTopText: 'ОГРН 5147746000000', innerBottomText: 'ИНН 7700000000', centerText: '«РОМАШКА»' },
+    { ...base, showInnerRing: true, showCenterRing: true, border: 'double', topText: 'ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', bottomText: 'ГОРОД МОСКВА', innerTopText: 'ОГРН 5127746000000', innerBottomText: 'ИНН 7700000000', centerText: '«АЛЬФА ТРЕЙД»' },
   ],
   'Врачи': [
-    { ...base, topText: 'ВРАЧ-ТЕРАПЕВТ', bottomText: 'ЛИЦЕНЗИЯ ЛО-00-00-000000', centerText: 'ПЕТРОВА', centerSub: 'АННА СЕРГЕЕВНА' },
-    { ...base, topText: 'СТОМАТОЛОГ', bottomText: 'КЛИНИКА «ЗДОРОВЬЕ»', centerText: 'СИДОРОВ', centerSub: 'ВРАЧ ВЫСШЕЙ КАТЕГОРИИ', symbol: 'dot' },
+    { ...base, showInnerRing: true, showCenterRing: true, border: 'double', topText: 'ВРАЧ-СТОМАТОЛОГ', bottomText: 'КЛИНИКА «ЗДОРОВЬЕ»', innerTopText: 'ЛИЦЕНЗИЯ ЛО-77-01-000000', centerText: 'Хмаренко', centerSub: 'Антон', centerSub2: 'Николаевич' },
+    { ...base, showInnerRing: true, showCenterRing: true, border: 'double', symbol: 'dot', topText: 'ВРАЧ-КАРДИОЛОГ', bottomText: 'КЛИНИКА «ЗДОРОВЬЕ»', innerTopText: 'ЛИЦЕНЗИЯ ЛО-77-01-000001', centerText: 'Козлова', centerSub: 'Мария', centerSub2: 'Игоревна' },
   ],
   'Гербовые': [
-    { ...base, topText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ', bottomText: 'ГОСУДАРСТВЕННОЕ УЧРЕЖДЕНИЕ', centerText: '⬤', centerSub: 'ОФИЦИАЛЬНАЯ', border: 'double', symbol: 'star8' },
-    { ...base, topText: 'НОТАРИУС', bottomText: 'ГОРОД МОСКВА', centerText: 'ГЕРБ', centerSub: 'ЛИЦЕНЗИЯ', border: 'double' },
+    { ...base, topText: 'ГОСУДАРСТВЕННОЕ БЮДЖЕТНОЕ УЧРЕЖДЕНИЕ', bottomText: 'ДЕПАРТАМЕНТ ЗДРАВООХРАНЕНИЯ · ГОРОД МОСКВА', centerText: 'ГЕРБ', centerSub: 'ОФИЦИАЛЬНАЯ', border: 'double', symbol: 'star8' },
+    { ...base, topText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ · НОТАРИУС', bottomText: 'ГОРОД МОСКВА', centerText: 'ГЕРБ', centerSub: 'ЛИЦЕНЗИЯ', border: 'double' },
   ],
   'Треугольные': [
-    { ...base, shape: 'triangle', topText: '', bottomText: '', centerText: 'КОНТРОЛЬ', centerSub: 'ОТК №5' },
-    { ...base, shape: 'triangle', centerText: 'ОПЛАЧЕНО', centerSub: 'касса №2', border: 'double' },
+    { ...base, shape: 'triangle', topText: '', bottomText: '', centerText: 'ДЛЯ', centerSub: 'СПРАВОК' },
+    { ...base, shape: 'triangle', topText: '', bottomText: '', centerText: 'ОТК', centerSub: 'КОНТРОЛЬ', border: 'double' },
   ],
   'Квадратные': [
-    { ...base, shape: 'square', topText: '', bottomText: '', centerText: 'ДОКУМЕНТЫ', centerSub: 'ПОЛУЧЕНЫ' },
-    { ...base, shape: 'square', centerText: 'КОПИЯ', centerSub: 'ВЕРНА', border: 'dashed' },
+    { ...base, shape: 'square', topText: '', bottomText: '', centerText: 'КОПИЯ', centerSub: 'ВЕРНА' },
+    { ...base, shape: 'square', topText: '', bottomText: '', centerText: 'ОПЛАЧЕНО', centerSub: '', border: 'double' },
+    { ...base, shape: 'square', topText: '', bottomText: '', centerText: 'ДОКУМЕНТЫ', centerSub: 'ПОЛУЧЕНЫ', border: 'dashed' },
   ],
 };
 

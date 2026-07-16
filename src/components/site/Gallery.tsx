@@ -1,14 +1,16 @@
 import StampPreview, { StampConfig } from './StampPreview';
 
 const base: StampConfig = {
-  shape: 'circle', size: 40, topText: '', bottomText: '', centerText: '', centerSub: '',
-  fontSize: 14, letterSpacing: 2, textRadius: 130, border: 'single', symbol: 'star', font: 'Golos Text',
+  shape: 'circle', size: 40, topText: '', bottomText: '', innerTopText: '', innerBottomText: '', centerText: '', centerSub: '', centerSub2: '',
+  fontSize: 14, letterSpacing: 2, outerRadius: 130, innerRadius: 95, centerRadius: 62, ringGap: 14,
+  showOuterRing: true, showInnerRing: false, showCenterRing: false, border: 'single', symbol: 'star', symbolAngle: 90, symbolRing: 'outer', symbolMirror: true, font: 'Golos Text',
+  logo: '', logoSize: 60,
 };
 
 const SAMPLES: StampConfig[] = [
-  { ...base, topText: 'ООО «АЛЬФА ТРЕЙД»', bottomText: 'ГОРОД МОСКВА', centerText: 'АТ', centerSub: 'ОГРН 5127746000000' },
-  { ...base, topText: 'ИП СМИРНОВ А. В.', bottomText: 'ИНН 770000000000', centerText: 'СМИРНОВ', centerSub: 'АЛЕКСЕЙ', symbol: 'diamond' },
-  { ...base, topText: 'ВРАЧ-КАРДИОЛОГ', bottomText: 'ЛИЦЕНЗИЯ ЛО-77', centerText: 'КОЗЛОВА', centerSub: 'МАРИЯ ИГОРЕВНА', symbol: 'dot' },
+  { ...base, showInnerRing: true, showCenterRing: true, topText: 'ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', bottomText: 'ГОРОД МОСКВА', innerTopText: 'ОГРН 5127746000000', innerBottomText: 'ИНН 7700000000', centerText: '«АЛЬФА ТРЕЙД»' },
+  { ...base, showInnerRing: false, showCenterRing: false, symbol: 'star', topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ', bottomText: 'ОГРНИП 770000000000', centerText: 'Смирнов', centerSub: 'Алексей', centerSub2: 'Викторович' },
+  { ...base, showInnerRing: true, showCenterRing: true, border: 'double', symbol: 'dot', topText: 'ВРАЧ-КАРДИОЛОГ', bottomText: 'КЛИНИКА «ЗДОРОВЬЕ»', innerTopText: 'ЛИЦЕНЗИЯ ЛО-77', centerText: 'Козлова', centerSub: 'Мария', centerSub2: 'Игоревна' },
   { ...base, shape: 'triangle', centerText: 'ОПЛАЧЕНО', centerSub: 'касса №2' },
   { ...base, shape: 'square', centerText: 'КОПИЯ', centerSub: 'ВЕРНА', border: 'dashed' },
   { ...base, topText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ', bottomText: 'ГОС. УЧРЕЖДЕНИЕ', centerText: 'ГЕРБ', centerSub: 'ОФИЦИАЛЬНО', border: 'double', symbol: 'star8' },

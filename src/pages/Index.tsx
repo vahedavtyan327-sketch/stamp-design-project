@@ -22,6 +22,7 @@ const Index = () => {
   };
 
   const removeFromCart = (id: string) => setCart((prev) => prev.filter((i) => i.id !== id));
+  const clearCart = () => setCart([]);
 
   return (
     <div className="min-h-screen scroll-smooth">
@@ -36,7 +37,7 @@ const Index = () => {
         <Contacts />
       </main>
       <Footer />
-      <CartSheet open={cartOpen} onOpenChange={setCartOpen} items={cart} onRemove={removeFromCart} />
+      <CartSheet open={cartOpen} onOpenChange={setCartOpen} items={cart} onRemove={removeFromCart} onClear={clearCart} />
     </div>
   );
 };

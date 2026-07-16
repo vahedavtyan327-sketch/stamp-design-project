@@ -3,14 +3,28 @@ export interface StampConfig {
   size: number;
   topText: string;
   bottomText: string;
+  innerTopText: string;
+  innerBottomText: string;
   centerText: string;
   centerSub: string;
+  centerSub2: string;
   fontSize: number;
   letterSpacing: number;
-  textRadius: number;
+  outerRadius: number;
+  innerRadius: number;
+  centerRadius: number;
+  ringGap: number;
+  showOuterRing: boolean;
+  showInnerRing: boolean;
+  showCenterRing: boolean;
   border: 'single' | 'double' | 'dashed' | 'none';
   symbol: 'none' | 'star' | 'star8' | 'dot' | 'diamond';
+  symbolAngle: number;
+  symbolRing: 'outer' | 'inner' | 'center';
+  symbolMirror: boolean;
   font: string;
+  logo: string;
+  logoSize: number;
 }
 
 const SYMBOLS: Record<string, string> = {
@@ -22,27 +36,31 @@ const SYMBOLS: Record<string, string> = {
 
 const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: number }) => {
   const c = 160;
-  const outerR = 150;
-  const textR = config.textRadius;
+  const outerBorderR = 150;
 
-  const renderArcText = (text: string, position: 'top' | 'bottom') => {
+  const renderArcText = (text: string, position: 'top' | 'bottom', radius: number) => {
     if (!text) return null;
     const chars = text.split('');
+
+    // arc length (px) needed per character, based on font size + letter spacing
+    const charArc = config.fontSize * 0.62 + config.letterSpacing;
+    const anglePerChar = (charArc / radius) * (180 / Math.PI);
+    const totalAngle = Math.min(anglePerChar * chars.length, 210);
+
     const isTop = position === 'top';
-    const totalAngle = Math.min(chars.length * (config.letterSpacing + 8), 260);
     const startAngle = isTop ? -90 - totalAngle / 2 : 90 - totalAngle / 2;
     const step = chars.length > 1 ? totalAngle / (chars.length - 1) : 0;
 
     return chars.map((ch, i) => {
       const angle = (startAngle + step * i) * (Math.PI / 180);
-      const x = c + textR * Math.cos(angle);
-      const y = c + textR * Math.sin(angle);
+      const x = c + radius * Math.cos(angle);
+      const y = c + radius * Math.sin(angle);
       const rot = isTop
         ? (startAngle + step * i) + 90
         : (startAngle + step * i) - 90;
       return (
         <text
-          key={`${position}-${i}`}
+          key={`${position}-${radius}-${i}`}
           x={x}
           y={y}
           fontSize={config.fontSize}
@@ -63,9 +81,19 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
     if (config.shape === 'circle') {
       return (
         <>
-          <circle cx={c} cy={c} r={outerR} fill="none" stroke="#000" strokeWidth={config.border === 'none' ? 0 : 4} strokeDasharray={config.border === 'dashed' ? '10 6' : undefined} />
-          {config.border === 'double' && (
-            <circle cx={c} cy={c} r={outerR - 10} fill="none" stroke="#000" strokeWidth={2} />
+          {config.showOuterRing && (
+            <>
+              <circle cx={c} cy={c} r={outerBorderR} fill="none" stroke="#000" strokeWidth={config.border === 'none' ? 0 : 4} strokeDasharray={config.border === 'dashed' ? '10 6' : undefined} />
+              {config.border === 'double' && (
+                <circle cx={c} cy={c} r={outerBorderR - 10} fill="none" stroke="#000" strokeWidth={2} />
+              )}
+            </>
+          )}
+          {config.showInnerRing && (
+            <circle cx={c} cy={c} r={config.innerRadius + config.ringGap} fill="none" stroke="#000" strokeWidth={1.5} />
+          )}
+          {config.showCenterRing && (
+            <circle cx={c} cy={c} r={config.centerRadius} fill="none" stroke="#000" strokeWidth={1.5} />
           )}
         </>
       );
@@ -90,7 +118,30 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
     );
   };
 
-  const centerY = config.shape === 'triangle' ? 200 : c;
+  const hasLogo = !!config.logo;
+  const logoOffset = hasLogo ? config.logoSize / 2 + 10 : 0;
+
+  const baseCenterY = config.shape === 'triangle' ? 200 : c;
+  const centerY = baseCenterY + logoOffset / 2;
+  const centerLinesCount = 1 + (config.centerSub ? 1 : 0) + (config.centerSub2 ? 1 : 0);
+  const lineH = config.fontSize * 0.95;
+
+  const centerLineY = (idx: number) => {
+    // idx: 0 = centerText, 1 = centerSub, 2 = centerSub2
+    if (centerLinesCount === 1) return centerY;
+    if (centerLinesCount === 2) return centerY + (idx === 0 ? -lineH / 2 : lineH / 2);
+    return centerY + (idx - 1) * lineH;
+  };
+
+  const ringRadius: Record<StampConfig['symbolRing'], number> = {
+    outer: config.outerRadius + (outerBorderR - config.outerRadius) / 2 + 4,
+    inner: config.innerRadius + config.ringGap,
+    center: config.centerRadius,
+  };
+  const symbolR = ringRadius[config.symbolRing] ?? ringRadius.outer;
+  // angle measured clockwise from the top (12 o'clock)
+  const symbolAngleRad = ((config.symbolAngle - 90) * Math.PI) / 180;
+  const mirrorAngleRad = ((config.symbolAngle + 180 - 90) * Math.PI) / 180;
 
   return (
     <svg
@@ -104,22 +155,53 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
 
       {config.shape === 'circle' && (
         <>
-          {renderArcText(config.topText, 'top')}
-          {renderArcText(config.bottomText, 'bottom')}
+          {renderArcText(config.topText, 'top', config.outerRadius)}
+          {renderArcText(config.bottomText, 'bottom', config.outerRadius)}
+          {renderArcText(config.innerTopText, 'top', config.innerRadius)}
+          {renderArcText(config.innerBottomText, 'bottom', config.innerRadius)}
           {config.symbol !== 'none' && (
             <>
-              <text x={40} y={c + 6} fontSize={22} textAnchor="middle" fill="#000">{SYMBOLS[config.symbol]}</text>
-              <text x={280} y={c + 6} fontSize={22} textAnchor="middle" fill="#000">{SYMBOLS[config.symbol]}</text>
+              <text
+                x={c + symbolR * Math.cos(symbolAngleRad)}
+                y={c + symbolR * Math.sin(symbolAngleRad) + 6}
+                fontSize={20}
+                textAnchor="middle"
+                fill="#000"
+              >
+                {SYMBOLS[config.symbol]}
+              </text>
+              {config.symbolMirror && (
+                <text
+                  x={c + symbolR * Math.cos(mirrorAngleRad)}
+                  y={c + symbolR * Math.sin(mirrorAngleRad) + 6}
+                  fontSize={20}
+                  textAnchor="middle"
+                  fill="#000"
+                >
+                  {SYMBOLS[config.symbol]}
+                </text>
+              )}
             </>
           )}
         </>
       )}
 
+      {hasLogo && (
+        <image
+          href={config.logo}
+          x={c - config.logoSize / 2}
+          y={baseCenterY - logoOffset / 2 - config.logoSize / 2}
+          width={config.logoSize}
+          height={config.logoSize}
+          preserveAspectRatio="xMidYMid meet"
+        />
+      )}
+
       {config.centerText && (
         <text
           x={c}
-          y={centerY - (config.centerSub ? 12 : 0)}
-          fontSize={config.fontSize + 4}
+          y={centerLineY(0)}
+          fontSize={config.fontSize + 2}
           fontFamily={config.font}
           fontWeight={700}
           fill="#000"
@@ -133,15 +215,29 @@ const StampPreview = ({ config, size = 320 }: { config: StampConfig; size?: numb
       {config.centerSub && (
         <text
           x={c}
-          y={centerY + 12}
-          fontSize={config.fontSize - 2}
+          y={centerLineY(1)}
+          fontSize={config.fontSize + 1}
           fontFamily={config.font}
-          fontWeight={500}
+          fontWeight={600}
           fill="#000"
           textAnchor="middle"
           dominantBaseline="central"
         >
           {config.centerSub}
+        </text>
+      )}
+      {config.centerSub2 && (
+        <text
+          x={c}
+          y={centerLineY(2)}
+          fontSize={config.fontSize + 1}
+          fontFamily={config.font}
+          fontWeight={600}
+          fill="#000"
+          textAnchor="middle"
+          dominantBaseline="central"
+        >
+          {config.centerSub2}
         </text>
       )}
     </svg>

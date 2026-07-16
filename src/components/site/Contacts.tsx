@@ -5,12 +5,14 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
+import { sendRequest } from '@/lib/api';
 
 const Contacts = () => {
   const [form, setForm] = useState({ name: '', phone: '', message: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs: Record<string, string> = {};
     if (!form.name.trim()) errs.name = 'Укажите имя';
@@ -19,8 +21,16 @@ const Contacts = () => {
     setErrors(errs);
     if (Object.keys(errs).length) return;
 
-    toast({ title: 'Сообщение отправлено!', description: 'Мы свяжемся с вами в ближайшее время.' });
-    setForm({ name: '', phone: '', message: '' });
+    setLoading(true);
+    try {
+      await sendRequest({ type: 'contact', ...form });
+      toast({ title: 'Сообщение отправлено!', description: 'Мы свяжемся с вами в ближайшее время.' });
+      setForm({ name: '', phone: '', message: '' });
+    } catch {
+      toast({ title: 'Не удалось отправить', description: 'Попробуйте ещё раз или напишите в Telegram.', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -68,8 +78,9 @@ const Contacts = () => {
               <Textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder="Опишите заказ или вопрос" rows={4} />
               {errors.message && <p className="mt-1 text-xs text-destructive">{errors.message}</p>}
             </div>
-            <Button type="submit" className="glow">
-              <Icon name="Send" size={18} />Отправить сообщение
+            <Button type="submit" className="glow" disabled={loading}>
+              <Icon name={loading ? 'Loader2' : 'Send'} size={18} className={loading ? 'animate-spin' : ''} />
+              {loading ? 'Отправляем…' : 'Отправить сообщение'}
             </Button>
           </form>
         </div>
