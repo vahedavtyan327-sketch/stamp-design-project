@@ -14,12 +14,12 @@ const TEMPLATES: Record<string, StampConfig[]> = {
     { ...base, symbol: 'none', showInnerRing: true, showCenterRing: true, topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ', innerTopText: 'ОГРНИП 000000000000', innerBottomText: 'ИНН 770000000000', centerText: 'Петров', centerSub: 'Павел', centerSub2: 'Павлович' },
   ],
   'ООО': [
-    { ...base, topText: 'ОГРН 00001234567890 · ИНН 01234567890', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА · ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', centerText: 'НАЗВАНИЕ', centerSub: 'КОМПАНИИ' },
-    { ...base, topText: 'ОГРН 5127746000000 · ИНН 7700000000', bottomText: 'ГОРОД МОСКВА · ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', centerText: 'АЛЬФА', centerSub: 'ТРЕЙД', border: 'double' },
+    { ...base, showInnerRing: true, showCenterRing: true, topText: 'ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА', innerTopText: 'ОГРН 5147746000000', innerBottomText: 'ИНН 7700000000', centerText: '«РОМАШКА»' },
+    { ...base, showInnerRing: true, showCenterRing: true, border: 'double', topText: 'ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', bottomText: 'ГОРОД МОСКВА', innerTopText: 'ОГРН 5127746000000', innerBottomText: 'ИНН 7700000000', centerText: '«АЛЬФА ТРЕЙД»' },
   ],
   'Врачи': [
-    { ...base, border: 'double', topText: 'ХМАРЕНКО', bottomText: 'АНТОН НИКОЛАЕВИЧ', centerText: 'ВРАЧ', centerSub: 'стоматолог' },
-    { ...base, border: 'double', symbol: 'dot', topText: 'КОЗЛОВА', bottomText: 'МАРИЯ ИГОРЕВНА', centerText: 'ВРАЧ', centerSub: 'кардиолог' },
+    { ...base, showInnerRing: true, showCenterRing: true, border: 'double', topText: 'ВРАЧ-СТОМАТОЛОГ', bottomText: 'КЛИНИКА «ЗДОРОВЬЕ»', innerTopText: 'ЛИЦЕНЗИЯ ЛО-77-01-000000', centerText: 'Хмаренко', centerSub: 'Антон', centerSub2: 'Николаевич' },
+    { ...base, showInnerRing: true, showCenterRing: true, border: 'double', symbol: 'dot', topText: 'ВРАЧ-КАРДИОЛОГ', bottomText: 'КЛИНИКА «ЗДОРОВЬЕ»', innerTopText: 'ЛИЦЕНЗИЯ ЛО-77-01-000001', centerText: 'Козлова', centerSub: 'Мария', centerSub2: 'Игоревна' },
   ],
   'Гербовые': [
     { ...base, topText: 'ГОСУДАРСТВЕННОЕ БЮДЖЕТНОЕ УЧРЕЖДЕНИЕ', bottomText: 'ДЕПАРТАМЕНТ ЗДРАВООХРАНЕНИЯ · ГОРОД МОСКВА', centerText: 'ГЕРБ', centerSub: 'ОФИЦИАЛЬНАЯ', border: 'double', symbol: 'star8' },
