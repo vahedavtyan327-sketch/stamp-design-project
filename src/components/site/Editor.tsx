@@ -154,8 +154,11 @@ const Editor = ({ onAddToCart }: EditorProps) => {
     border: 'single',
     symbol: PRESETS.ip_photo.config.symbol ?? 'star',
     symbolAngle: PRESETS.ip_photo.config.symbolAngle ?? 90,
+    symbolOffset: 0,
     symbolRing: PRESETS.ip_photo.config.symbolRing ?? 'outer',
     symbolMirror: PRESETS.ip_photo.config.symbolMirror ?? true,
+    symbol2Angle: ((PRESETS.ip_photo.config.symbolAngle ?? 90) + 180) % 360,
+    symbol2Offset: 0,
     font: 'Golos Text',
     logo: '',
     logoSize: 60,
@@ -299,8 +302,20 @@ const Editor = ({ onAddToCart }: EditorProps) => {
               <StampPreview
                 config={config}
                 onTextChange={(field, value) => set(field, value)}
+                onSymbolChange={(which, change) => {
+                  if (which === 'main') {
+                    set('symbolAngle', ((change.angle % 360) + 360) % 360);
+                    set('symbolOffset', change.offset);
+                  } else {
+                    set('symbol2Angle', ((change.angle % 360) + 360) % 360);
+                    set('symbol2Offset', change.offset);
+                  }
+                }}
               />
             </div>
+            <p className="-mt-3 text-center text-xs text-muted-foreground">
+              Перетаскивайте символ-разделитель прямо на макете, чтобы сдвинуть его
+            </p>
 
             {/* Order type + price */}
             <div className="grid gap-3 rounded-xl border border-border/60 bg-secondary/40 p-4">
@@ -593,10 +608,20 @@ const Editor = ({ onAddToCart }: EditorProps) => {
                         ))}
                       </div>
                       <button
-                        onClick={() => set('symbolMirror', !config.symbolMirror)}
+                        onClick={() => {
+                          const next = !config.symbolMirror;
+                          set('symbolMirror', next);
+                          if (next) {
+                            setConfig((p) => ({
+                              ...p,
+                              symbol2Angle: (p.symbolAngle + 180) % 360,
+                              symbol2Offset: p.symbolOffset,
+                            }));
+                          }
+                        }}
                         className={`w-full rounded-lg border p-2 text-xs transition ${config.symbolMirror ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
                       >
-                        Зеркально с другой стороны
+                        Добавить второй символ (двигается отдельно)
                       </button>
                     </div>
                   )}
@@ -648,14 +673,44 @@ const Editor = ({ onAddToCart }: EditorProps) => {
                         />
                       )}
                       {config.symbol !== 'none' && (
-                        <SliderRow
-                          label="Положение символа по кругу"
-                          value={config.symbolAngle}
-                          min={0}
-                          max={359}
-                          onChange={(v) => set('symbolAngle', v)}
-                          unit="°"
-                        />
+                        <>
+                          <SliderRow
+                            label={config.symbolMirror ? 'Символ 1 — положение по кругу' : 'Символ — положение по кругу'}
+                            value={config.symbolAngle}
+                            min={0}
+                            max={359}
+                            onChange={(v) => set('symbolAngle', v)}
+                            unit="°"
+                          />
+                          <SliderRow
+                            label={config.symbolMirror ? 'Символ 1 — отступ от овала' : 'Символ — отступ от овала'}
+                            value={config.symbolOffset}
+                            min={-15}
+                            max={15}
+                            onChange={(v) => set('symbolOffset', v)}
+                            unit="px"
+                          />
+                          {config.symbolMirror && (
+                            <>
+                              <SliderRow
+                                label="Символ 2 — положение по кругу"
+                                value={config.symbol2Angle}
+                                min={0}
+                                max={359}
+                                onChange={(v) => set('symbol2Angle', v)}
+                                unit="°"
+                              />
+                              <SliderRow
+                                label="Символ 2 — отступ от овала"
+                                value={config.symbol2Offset}
+                                min={-15}
+                                max={15}
+                                onChange={(v) => set('symbol2Offset', v)}
+                                unit="px"
+                              />
+                            </>
+                          )}
+                        </>
                       )}
                       {config.logo && (
                         <SliderRow

@@ -22,8 +22,11 @@ export interface StampConfig {
   border: 'single' | 'double' | 'dashed' | 'none';
   symbol: 'none' | 'star' | 'star8' | 'dot' | 'diamond';
   symbolAngle: number;
+  symbolOffset: number;
   symbolRing: 'outer' | 'inner' | 'center';
   symbolMirror: boolean;
+  symbol2Angle: number;
+  symbol2Offset: number;
   font: string;
   logo: string;
   logoSize: number;
@@ -45,13 +48,19 @@ export type EditableField =
   | 'centerSub'
   | 'centerSub2';
 
+export interface SymbolChange {
+  angle: number;
+  offset: number;
+}
+
 interface StampPreviewProps {
   config: StampConfig;
   size?: number;
   onTextChange?: (field: EditableField, value: string) => void;
+  onSymbolChange?: (which: 'main' | 'mirror', change: SymbolChange) => void;
 }
 
-const StampPreview = ({ config, size = 320, onTextChange }: StampPreviewProps) => {
+const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange }: StampPreviewProps) => {
   const c = 160;
   const outerBorderR = 150;
   const svgRef = useRef<SVGSVGElement>(null);
@@ -64,12 +73,54 @@ const StampPreview = ({ config, size = 320, onTextChange }: StampPreviewProps) =
     width: number;
     height: number;
   } | null>(null);
+  const dragState = useRef<{ which: 'main' | 'mirror' } | null>(null);
 
   const editable = !!onTextChange;
+  const symbolDraggable = !!onSymbolChange;
 
   const getScale = () => {
     const rect = svgRef.current?.getBoundingClientRect();
     return rect && rect.width ? rect.width / 320 : size / 320;
+  };
+
+  const pointToPolar = (clientX: number, clientY: number) => {
+    const rect = svgRef.current?.getBoundingClientRect();
+    if (!rect) return null;
+    const scale = rect.width / 320;
+    const px = (clientX - rect.left) / scale - c;
+    const py = (clientY - rect.top) / scale - c;
+    const dist = Math.sqrt(px * px + py * py);
+    let angleDeg = (Math.atan2(py, px) * 180) / Math.PI + 90;
+    if (angleDeg < 0) angleDeg += 360;
+    return { angleDeg, dist };
+  };
+
+  const handleSymbolPointerDown = (which: 'main' | 'mirror') => (e: React.PointerEvent) => {
+    if (!symbolDraggable) return;
+    e.stopPropagation();
+    (e.target as Element).setPointerCapture(e.pointerId);
+    dragState.current = { which };
+  };
+
+  const handleSymbolPointerMove = (e: React.PointerEvent) => {
+    if (!dragState.current || !onSymbolChange) return;
+    const polar = pointToPolar(e.clientX, e.clientY);
+    if (!polar) return;
+    const baseR = ringRadiusFor(config.symbolRing);
+    onSymbolChange(dragState.current.which, {
+      angle: Math.round(polar.angleDeg),
+      offset: Math.round(polar.dist - baseR),
+    });
+  };
+
+  const handleSymbolPointerUp = () => {
+    dragState.current = null;
+  };
+
+  const ringRadiusFor = (ring: StampConfig['symbolRing']) => {
+    if (ring === 'inner') return config.innerRadius + config.ringGap;
+    if (ring === 'center') return config.centerRadius;
+    return config.outerRadius + (outerBorderR - config.outerRadius) / 2 + 4;
   };
 
   const startEdit = (field: EditableField, el: SVGGraphicsElement, initial: string) => {
@@ -196,15 +247,12 @@ const StampPreview = ({ config, size = 320, onTextChange }: StampPreviewProps) =
     return centerY + (idx - 1) * lineH;
   };
 
-  const ringRadius: Record<StampConfig['symbolRing'], number> = {
-    outer: config.outerRadius + (outerBorderR - config.outerRadius) / 2 + 4,
-    inner: config.innerRadius + config.ringGap,
-    center: config.centerRadius,
-  };
-  const symbolR = ringRadius[config.symbolRing] ?? ringRadius.outer;
+  const baseRingR = ringRadiusFor(config.symbolRing);
+  const symbolR = baseRingR + (config.symbolOffset ?? 0);
+  const mirrorR = baseRingR + (config.symbol2Offset ?? 0);
   // angle measured clockwise from the top (12 o'clock)
   const symbolAngleRad = ((config.symbolAngle - 90) * Math.PI) / 180;
-  const mirrorAngleRad = ((config.symbolAngle + 180 - 90) * Math.PI) / 180;
+  const mirrorAngleRad = (((config.symbolMirror ? config.symbol2Angle : config.symbolAngle + 180) - 90) * Math.PI) / 180;
 
   const centerTextEl = (field: EditableField, text: string, y: number, fontSize: number, weight: number) => (
     <text
@@ -251,17 +299,25 @@ const StampPreview = ({ config, size = 320, onTextChange }: StampPreviewProps) =
                   textAnchor="middle"
                   dominantBaseline="central"
                   fill="#000"
+                  className={symbolDraggable ? 'cursor-move touch-none' : undefined}
+                  onPointerDown={handleSymbolPointerDown('main')}
+                  onPointerMove={handleSymbolPointerMove}
+                  onPointerUp={handleSymbolPointerUp}
                 >
                   {SYMBOLS[config.symbol]}
                 </text>
                 {config.symbolMirror && (
                   <text
-                    x={c + symbolR * Math.cos(mirrorAngleRad)}
-                    y={c + symbolR * Math.sin(mirrorAngleRad)}
+                    x={c + mirrorR * Math.cos(mirrorAngleRad)}
+                    y={c + mirrorR * Math.sin(mirrorAngleRad)}
                     fontSize={20}
                     textAnchor="middle"
                     dominantBaseline="central"
                     fill="#000"
+                    className={symbolDraggable ? 'cursor-move touch-none' : undefined}
+                    onPointerDown={handleSymbolPointerDown('mirror')}
+                    onPointerMove={handleSymbolPointerMove}
+                    onPointerUp={handleSymbolPointerUp}
                   >
                     {SYMBOLS[config.symbol]}
                   </text>

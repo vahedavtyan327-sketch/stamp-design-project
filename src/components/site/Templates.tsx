@@ -6,7 +6,7 @@ import Icon from '@/components/ui/icon';
 const base: StampConfig = {
   shape: 'circle', size: 40, topText: '', bottomText: '', innerTopText: '', innerBottomText: '', centerText: '', centerSub: '', centerSub2: '',
   fontSize: 14, letterSpacing: 2, outerRadius: 130, innerRadius: 95, centerRadius: 62, ringGap: 14,
-  showOuterRing: true, showInnerRing: false, showCenterRing: false, border: 'single', symbol: 'star', symbolAngle: 90, symbolRing: 'outer', symbolMirror: true, font: 'Golos Text',
+  showOuterRing: true, showInnerRing: false, showCenterRing: false, border: 'single', symbol: 'star', symbolAngle: 90, symbolOffset: 0, symbolRing: 'outer', symbolMirror: true, symbol2Angle: 270, symbol2Offset: 0, font: 'Golos Text',
   logo: '', logoSize: 60,
 };
 
