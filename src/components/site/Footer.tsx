@@ -46,11 +46,11 @@ const Footer = () => (
         <div className="mt-3 flex flex-wrap gap-3">
           <span className="flex items-center gap-2 rounded-lg border border-border/60 px-3 py-2 text-sm text-muted-foreground">
             <Icon name="Banknote" size={16} className="text-primary" />
-            Наличными при получении
+            Наличными при полной оплате
           </span>
           <span className="flex items-center gap-2 rounded-lg border border-border/60 px-3 py-2 text-sm text-muted-foreground">
-            <Icon name="Landmark" size={16} className="text-primary" />
-            Переводом на счёт
+            <span className="flex h-5 w-5 items-center justify-center rounded-md bg-[#21A038] text-[10px] font-800 text-white">С</span>
+            Переводом на Сбер
           </span>
         </div>
       </div>

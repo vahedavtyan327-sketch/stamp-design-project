@@ -27,9 +27,26 @@ export interface StampConfig {
   symbolMirror: boolean;
   symbol2Angle: number;
   symbol2Offset: number;
+  symbol3: boolean;
+  symbol3Angle: number;
+  symbol3Offset: number;
+  symbol4: boolean;
+  symbol4Angle: number;
+  symbol4Offset: number;
+  symbol5: boolean;
+  symbol5Angle: number;
+  symbol5Offset: number;
+  topTextOffset: number;
+  bottomTextOffset: number;
+  innerTopTextOffset: number;
+  innerBottomTextOffset: number;
   font: string;
   logo: string;
   logoSize: number;
+  logoRotation: number;
+  logoAngle: number;
+  logoDistance: number;
+  logoGap: number;
 }
 
 const SYMBOLS: Record<string, string> = {
@@ -53,14 +70,22 @@ export interface SymbolChange {
   offset: number;
 }
 
+export type SymbolSlot = 'main' | 'mirror' | 's3' | 's4' | 's5';
+
+export interface LogoChange {
+  angle: number;
+  distance: number;
+}
+
 interface StampPreviewProps {
   config: StampConfig;
   size?: number;
   onTextChange?: (field: EditableField, value: string) => void;
-  onSymbolChange?: (which: 'main' | 'mirror', change: SymbolChange) => void;
+  onSymbolChange?: (which: SymbolSlot, change: SymbolChange) => void;
+  onLogoChange?: (change: LogoChange) => void;
 }
 
-const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange }: StampPreviewProps) => {
+const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange, onLogoChange }: StampPreviewProps) => {
   const c = 160;
   const outerBorderR = 150;
   const svgRef = useRef<SVGSVGElement>(null);
@@ -73,10 +98,11 @@ const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange }: Stam
     width: number;
     height: number;
   } | null>(null);
-  const dragState = useRef<{ which: 'main' | 'mirror' } | null>(null);
+  const dragState = useRef<{ which: SymbolSlot | 'logo' } | null>(null);
 
   const editable = !!onTextChange;
   const symbolDraggable = !!onSymbolChange;
+  const logoDraggable = !!onLogoChange;
 
   const getScale = () => {
     const rect = svgRef.current?.getBoundingClientRect();
@@ -95,7 +121,7 @@ const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange }: Stam
     return { angleDeg, dist };
   };
 
-  const handleSymbolPointerDown = (which: 'main' | 'mirror') => (e: React.PointerEvent) => {
+  const handleSymbolPointerDown = (which: SymbolSlot) => (e: React.PointerEvent) => {
     if (!symbolDraggable) return;
     e.stopPropagation();
     (e.target as Element).setPointerCapture(e.pointerId);
@@ -103,7 +129,7 @@ const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange }: Stam
   };
 
   const handleSymbolPointerMove = (e: React.PointerEvent) => {
-    if (!dragState.current || !onSymbolChange) return;
+    if (!dragState.current || dragState.current.which === 'logo' || !onSymbolChange) return;
     const polar = pointToPolar(e.clientX, e.clientY);
     if (!polar) return;
     const baseR = ringRadiusFor(config.symbolRing);
@@ -115,6 +141,20 @@ const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange }: Stam
 
   const handleSymbolPointerUp = () => {
     dragState.current = null;
+  };
+
+  const handleLogoPointerDown = (e: React.PointerEvent) => {
+    if (!logoDraggable) return;
+    e.stopPropagation();
+    (e.target as Element).setPointerCapture(e.pointerId);
+    dragState.current = { which: 'logo' };
+  };
+
+  const handleLogoPointerMove = (e: React.PointerEvent) => {
+    if (!dragState.current || dragState.current.which !== 'logo' || !onLogoChange) return;
+    const polar = pointToPolar(e.clientX, e.clientY);
+    if (!polar) return;
+    onLogoChange({ angle: Math.round(polar.angleDeg), distance: Math.round(polar.dist) });
   };
 
   const ringRadiusFor = (ring: StampConfig['symbolRing']) => {
@@ -144,7 +184,7 @@ const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange }: Stam
     setEditing(null);
   };
 
-  const renderArcText = (text: string, position: 'top' | 'bottom', radius: number, field: EditableField) => {
+  const renderArcText = (text: string, position: 'top' | 'bottom', radius: number, field: EditableField, centerOffsetDeg = 0) => {
     if (!text) return null;
     const chars = text.split('');
 
@@ -154,9 +194,12 @@ const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange }: Stam
     const totalAngle = Math.min(anglePerChar * chars.length, 210);
 
     const isTop = position === 'top';
+    // base center angle: -90 (12 o'clock) for top arcs, 90 (6 o'clock) for bottom arcs,
+    // shifted around the circle by centerOffsetDeg (position by circle control)
+    const centerAngle = (isTop ? -90 : 90) + centerOffsetDeg;
     // startAngle/step are defined so characters always progress left-to-right
     // along the arc, whether the arc sits above (top) or below (bottom) center
-    const startAngle = isTop ? -90 - totalAngle / 2 : 90 + totalAngle / 2;
+    const startAngle = isTop ? centerAngle - totalAngle / 2 : centerAngle + totalAngle / 2;
     const step = chars.length > 1 ? totalAngle / (chars.length - 1) : 0;
 
     return (
@@ -233,7 +276,7 @@ const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange }: Stam
   };
 
   const hasLogo = !!config.logo;
-  const logoOffset = hasLogo ? config.logoSize / 2 + 10 : 0;
+  const logoOffset = hasLogo ? config.logoSize / 2 + (config.logoGap ?? 10) : 0;
 
   const baseCenterY = config.shape === 'triangle' ? 200 : c;
   const centerY = baseCenterY + logoOffset / 2;
@@ -248,11 +291,35 @@ const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange }: Stam
   };
 
   const baseRingR = ringRadiusFor(config.symbolRing);
-  const symbolR = baseRingR + (config.symbolOffset ?? 0);
-  const mirrorR = baseRingR + (config.symbol2Offset ?? 0);
-  // angle measured clockwise from the top (12 o'clock)
-  const symbolAngleRad = ((config.symbolAngle - 90) * Math.PI) / 180;
-  const mirrorAngleRad = (((config.symbolMirror ? config.symbol2Angle : config.symbolAngle + 180) - 90) * Math.PI) / 180;
+
+  const renderSymbol = (which: SymbolSlot, angleDeg: number, offset: number) => {
+    const r = baseRingR + (offset ?? 0);
+    const rad = ((angleDeg - 90) * Math.PI) / 180;
+    return (
+      <text
+        key={which}
+        x={c + r * Math.cos(rad)}
+        y={c + r * Math.sin(rad)}
+        fontSize={20}
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill="#000"
+        className={symbolDraggable ? 'cursor-move touch-none' : undefined}
+        onPointerDown={handleSymbolPointerDown(which)}
+        onPointerMove={handleSymbolPointerMove}
+        onPointerUp={handleSymbolPointerUp}
+      >
+        {SYMBOLS[config.symbol]}
+      </text>
+    );
+  };
+
+  const logoAngleRad = ((config.logoAngle - 90) * Math.PI) / 180;
+  const hasCustomLogoPos = (config.logoDistance ?? 0) > 0;
+  const logoCx = hasCustomLogoPos ? c + config.logoDistance * Math.cos(logoAngleRad) : c;
+  const logoCy = hasCustomLogoPos
+    ? c + config.logoDistance * Math.sin(logoAngleRad)
+    : undefined;
 
   const centerTextEl = (field: EditableField, text: string, y: number, fontSize: number, weight: number) => (
     <text
@@ -286,42 +353,17 @@ const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange }: Stam
 
         {config.shape === 'circle' && (
           <>
-            {renderArcText(config.topText, 'top', config.outerRadius, 'topText')}
-            {renderArcText(config.bottomText, 'bottom', config.outerRadius, 'bottomText')}
-            {renderArcText(config.innerTopText, 'top', config.innerRadius, 'innerTopText')}
-            {renderArcText(config.innerBottomText, 'bottom', config.innerRadius, 'innerBottomText')}
+            {renderArcText(config.topText, 'top', config.outerRadius, 'topText', config.topTextOffset ?? 0)}
+            {renderArcText(config.bottomText, 'bottom', config.outerRadius, 'bottomText', config.bottomTextOffset ?? 0)}
+            {renderArcText(config.innerTopText, 'top', config.innerRadius, 'innerTopText', config.innerTopTextOffset ?? 0)}
+            {renderArcText(config.innerBottomText, 'bottom', config.innerRadius, 'innerBottomText', config.innerBottomTextOffset ?? 0)}
             {config.symbol !== 'none' && (
               <>
-                <text
-                  x={c + symbolR * Math.cos(symbolAngleRad)}
-                  y={c + symbolR * Math.sin(symbolAngleRad)}
-                  fontSize={20}
-                  textAnchor="middle"
-                  dominantBaseline="central"
-                  fill="#000"
-                  className={symbolDraggable ? 'cursor-move touch-none' : undefined}
-                  onPointerDown={handleSymbolPointerDown('main')}
-                  onPointerMove={handleSymbolPointerMove}
-                  onPointerUp={handleSymbolPointerUp}
-                >
-                  {SYMBOLS[config.symbol]}
-                </text>
-                {config.symbolMirror && (
-                  <text
-                    x={c + mirrorR * Math.cos(mirrorAngleRad)}
-                    y={c + mirrorR * Math.sin(mirrorAngleRad)}
-                    fontSize={20}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    fill="#000"
-                    className={symbolDraggable ? 'cursor-move touch-none' : undefined}
-                    onPointerDown={handleSymbolPointerDown('mirror')}
-                    onPointerMove={handleSymbolPointerMove}
-                    onPointerUp={handleSymbolPointerUp}
-                  >
-                    {SYMBOLS[config.symbol]}
-                  </text>
-                )}
+                {renderSymbol('main', config.symbolAngle, config.symbolOffset)}
+                {config.symbolMirror && renderSymbol('mirror', config.symbol2Angle, config.symbol2Offset)}
+                {config.symbol3 && renderSymbol('s3', config.symbol3Angle, config.symbol3Offset)}
+                {config.symbol4 && renderSymbol('s4', config.symbol4Angle, config.symbol4Offset)}
+                {config.symbol5 && renderSymbol('s5', config.symbol5Angle, config.symbol5Offset)}
               </>
             )}
           </>
@@ -330,11 +372,16 @@ const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange }: Stam
         {hasLogo && (
           <image
             href={config.logo}
-            x={c - config.logoSize / 2}
-            y={baseCenterY - logoOffset / 2 - config.logoSize / 2}
+            x={(hasCustomLogoPos ? logoCx : c) - config.logoSize / 2}
+            y={(hasCustomLogoPos ? logoCy! : baseCenterY - logoOffset / 2) - config.logoSize / 2}
             width={config.logoSize}
             height={config.logoSize}
             preserveAspectRatio="xMidYMid meet"
+            transform={config.logoRotation ? `rotate(${config.logoRotation} ${hasCustomLogoPos ? logoCx : c} ${hasCustomLogoPos ? logoCy : baseCenterY - logoOffset / 2})` : undefined}
+            className={logoDraggable ? 'cursor-move touch-none' : undefined}
+            onPointerDown={handleLogoPointerDown}
+            onPointerMove={handleLogoPointerMove}
+            onPointerUp={handleSymbolPointerUp}
           />
         )}
 

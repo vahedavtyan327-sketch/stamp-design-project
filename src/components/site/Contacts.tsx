@@ -73,6 +73,16 @@ const Contacts = () => {
                   <span className="text-sm">{c.label}</span>
                 </a>
               ))}
+
+              <div className="flex items-center gap-3 rounded-xl border border-border/60 bg-card/50 p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Icon name="Building2" size={20} />
+                </div>
+                <div>
+                  <span className="block text-sm">Филиал: г. Апрелевка, ул. Ясная, дом 4</span>
+                  <span className="block text-xs text-muted-foreground">В филиале принимаются только онлайн-заказы</span>
+                </div>
+              </div>
             </div>
           </div>
 
