@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { toast } from '@/hooks/use-toast';
+import { recognizeStamp } from '@/lib/api';
 import StampPreview, { StampConfig } from './StampPreview';
 import type { CartItem } from './types';
 
@@ -163,6 +165,7 @@ const Editor = ({ onAddToCart }: EditorProps) => {
   const [urgent, setUrgent] = useState(false);
   const [readyAt, setReadyAt] = useState('');
   const [kit, setKit] = useState<'both' | 'cleshe' | 'osnastka'>('both');
+  const [recognizing, setRecognizing] = useState(false);
 
   const set = <K extends keyof StampConfig>(k: K, v: StampConfig[K]) =>
     setConfig((p) => ({ ...p, [k]: v }));
@@ -198,6 +201,54 @@ const Editor = ({ onAddToCart }: EditorProps) => {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => set('logo', reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleStampUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (file.size > 8 * 1024 * 1024) {
+      toast({ title: 'Файл слишком большой', description: 'Загрузите изображение до 8 МБ.', variant: 'destructive' });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const dataUrl = reader.result as string;
+      setRecognizing(true);
+      try {
+        const r = await recognizeStamp(dataUrl);
+        setConfig((p) => ({
+          ...p,
+          shape: r.shape,
+          topText: r.topText,
+          bottomText: r.bottomText,
+          innerTopText: r.innerTopText,
+          innerBottomText: r.innerBottomText,
+          centerText: r.centerText,
+          centerSub: r.centerSub,
+          centerSub2: r.centerSub2,
+          showInnerRing: r.showInnerRing,
+          showCenterRing: r.showCenterRing,
+          symbol: r.symbol,
+          border: r.border,
+        }));
+        const match = OSNASTKI.find((o) => o.shape === r.shape);
+        if (match) {
+          setOsnastka(match);
+          setOsnastkaSize(match.sizes[Math.floor(match.sizes.length / 2)]);
+        }
+        toast({ title: 'Оттиск распознан!', description: 'Проверьте и поправьте текст макета ниже.' });
+      } catch (err) {
+        toast({
+          title: 'Не удалось распознать',
+          description: err instanceof Error ? err.message : 'Попробуйте другое фото поближе и почётче.',
+          variant: 'destructive',
+        });
+      } finally {
+        setRecognizing(false);
+      }
+    };
     reader.readAsDataURL(file);
   };
 
@@ -329,6 +380,22 @@ const Editor = ({ onAddToCart }: EditorProps) => {
 
           {/* Controls */}
           <div className="order-1 lg:order-2 grid content-start gap-4 rounded-2xl border border-border/60 bg-card/50 p-6 max-h-[80vh] overflow-y-auto">
+            {/* AI recognition from uploaded imprint */}
+            <div className="rounded-xl border border-primary/30 bg-primary/5 p-3">
+              <div className="mb-2 flex items-center gap-2 text-xs font-600 text-primary">
+                <Icon name="Sparkles" size={14} />
+                Распознать по фото оттиска
+              </div>
+              <label className={`flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-primary/40 p-3 text-center text-xs transition hover:border-primary ${recognizing ? 'pointer-events-none opacity-70' : ''}`}>
+                <input type="file" accept="image/*" className="hidden" onChange={handleStampUpload} disabled={recognizing} />
+                <Icon name={recognizing ? 'Loader2' : 'Upload'} size={14} className={recognizing ? 'animate-spin' : ''} />
+                {recognizing ? 'Распознаём оттиск…' : 'Загрузить оттиск — ИИ соберёт макет'}
+              </label>
+              <p className="mt-2 text-[11px] leading-tight text-muted-foreground">
+                ИИ считает текст и форму с фото и заполнит поля ниже — останется поправить детали.
+              </p>
+            </div>
+
             {/* presets */}
             <div>
               <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Готовый макет по образцу</Label>
