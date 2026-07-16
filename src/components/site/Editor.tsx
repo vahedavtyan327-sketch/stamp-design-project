@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,28 +34,8 @@ interface PresetDef {
 }
 
 const PRESETS: Record<string, PresetDef> = {
-  ip_sample1: {
-    label: 'ИП образец 1',
-    config: {
-      shape: 'circle',
-      topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ',
-      bottomText: 'ОГРНИП 000000000000',
-      innerTopText: '',
-      innerBottomText: '',
-      centerText: 'Петров',
-      centerSub: 'Олег',
-      centerSub2: 'Иванович',
-      symbol: 'star',
-      symbolRing: 'outer',
-      symbolAngle: 90,
-      symbolMirror: true,
-      border: 'single',
-      showInnerRing: false,
-      showCenterRing: false,
-    },
-  },
-  ip: {
-    label: 'ИП образец 2',
+  ip_photo: {
+    label: 'ИП',
     config: {
       shape: 'circle',
       topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ',
@@ -66,26 +46,6 @@ const PRESETS: Record<string, PresetDef> = {
       centerSub: 'Илья',
       centerSub2: 'Олегович',
       symbol: 'none',
-      border: 'single',
-      showInnerRing: true,
-      showCenterRing: true,
-    },
-  },
-  ip_sample3: {
-    label: 'ИП образец 3',
-    config: {
-      shape: 'circle',
-      topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ',
-      bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА',
-      innerTopText: 'ОГРНИП 115774000000',
-      innerBottomText: 'ИНН 7745550000',
-      centerText: 'Петров',
-      centerSub: 'Петр',
-      centerSub2: 'Андреевич',
-      symbol: 'star',
-      symbolRing: 'outer',
-      symbolAngle: 90,
-      symbolMirror: true,
       border: 'single',
       showInnerRing: true,
       showCenterRing: true,
@@ -205,13 +165,13 @@ const Editor = ({ onAddToCart }: EditorProps) => {
   const [config, setConfig] = useState<StampConfig>({
     shape: 'circle',
     size: 40,
-    topText: PRESETS.ip.config.topText!,
-    bottomText: PRESETS.ip.config.bottomText!,
-    innerTopText: PRESETS.ip.config.innerTopText || '',
-    innerBottomText: PRESETS.ip.config.innerBottomText || '',
-    centerText: PRESETS.ip.config.centerText!,
-    centerSub: PRESETS.ip.config.centerSub!,
-    centerSub2: PRESETS.ip.config.centerSub2 || '',
+    topText: PRESETS.ip_photo.config.topText!,
+    bottomText: PRESETS.ip_photo.config.bottomText!,
+    innerTopText: PRESETS.ip_photo.config.innerTopText || '',
+    innerBottomText: PRESETS.ip_photo.config.innerBottomText || '',
+    centerText: PRESETS.ip_photo.config.centerText!,
+    centerSub: PRESETS.ip_photo.config.centerSub!,
+    centerSub2: PRESETS.ip_photo.config.centerSub2 || '',
     fontSize: 15,
     letterSpacing: 2,
     outerRadius: 130,
@@ -219,8 +179,8 @@ const Editor = ({ onAddToCart }: EditorProps) => {
     centerRadius: 62,
     ringGap: 14,
     showOuterRing: true,
-    showInnerRing: PRESETS.ip.config.showInnerRing ?? false,
-    showCenterRing: PRESETS.ip.config.showCenterRing ?? false,
+    showInnerRing: PRESETS.ip_photo.config.showInnerRing ?? false,
+    showCenterRing: PRESETS.ip_photo.config.showCenterRing ?? false,
     border: 'single',
     symbol: 'star',
     symbolAngle: 15,
@@ -632,14 +592,45 @@ const TextField = ({ label, value, onChange }: { label: string; value: string; o
   </div>
 );
 
-const SliderRow = ({ label, value, min, max, onChange, unit }: { label: string; value: number; min: number; max: number; onChange: (v: number) => void; unit?: string }) => (
-  <div>
-    <div className="mb-1.5 flex items-center justify-between">
-      <Label className="text-xs uppercase tracking-wide text-muted-foreground">{label}</Label>
-      <span className="text-xs font-600 text-primary">{value}{unit || ''}</span>
+const SliderRow = ({ label, value, min, max, onChange, unit }: { label: string; value: number; min: number; max: number; onChange: (v: number) => void; unit?: string }) => {
+  const dragState = useRef<{ startY: number; startValue: number } | null>(null);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    dragState.current = { startY: e.clientY, startValue: value };
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragState.current) return;
+    const deltaY = dragState.current.startY - e.clientY;
+    const range = max - min;
+    const sensitivity = range / 150;
+    const next = Math.round(dragState.current.startValue + deltaY * sensitivity);
+    onChange(Math.min(max, Math.max(min, next)));
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    dragState.current = null;
+  };
+
+  return (
+    <div>
+      <div
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        className="mb-1.5 flex cursor-ns-resize select-none items-center justify-between rounded px-1 -mx-1 py-0.5 hover:bg-primary/5 active:bg-primary/10"
+        title="Потяните вверх/вниз, чтобы изменить значение"
+      >
+        <Label className="pointer-events-none text-xs uppercase tracking-wide text-muted-foreground">{label}</Label>
+        <span className="pointer-events-none text-xs font-600 text-primary">
+          {value}{unit || ''}
+        </span>
+      </div>
+      <Slider value={[value]} min={min} max={max} step={1} onValueChange={([v]) => onChange(v)} />
     </div>
-    <Slider value={[value]} min={min} max={max} step={1} onValueChange={([v]) => onChange(v)} />
-  </div>
-);
+  );
+};
 
 export default Editor;
