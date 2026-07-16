@@ -36,8 +36,8 @@ const Footer = () => (
           <h4 className="font-display text-sm font-600 uppercase tracking-wide text-muted-foreground">Контакты</h4>
           <div className="mt-4 grid gap-2 text-sm">
             <a href="tel:+79000000000" className="text-muted-foreground hover:text-primary">+7 (900) 000-00-00</a>
-            <a href="mailto:zakaz@stampcopy.ru" className="text-muted-foreground hover:text-primary">zakaz@stampcopy.ru</a>
-            <span className="text-muted-foreground">г. Москва, ул. Печатная, 1</span>
+            <a href="mailto:zakaz@stampcopy.com" className="text-muted-foreground hover:text-primary">zakaz@stampcopy.com</a>
+            <span className="text-muted-foreground">г. Москва, град Московский, ул. Радужная, дом 6</span>
           </div>
         </div>
       </div>

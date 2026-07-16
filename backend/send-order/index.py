@@ -1,13 +1,17 @@
+import base64
 import json
 import os
 import smtplib
+from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email import encoders
 
 
 def handler(event: dict, context) -> dict:
     """Принимает заявки из формы контактов и заказы из корзины,
-    отправляет их на почту info@stampcopy.com через SMTP Mail.ru"""
+    отправляет их на почту zakaz@stampcopy.com через SMTP Mail.ru.
+    Поддерживает вложение файла (например, оттиска печати) в base64."""
     method = event.get('httpMethod', 'GET')
 
     if method == 'OPTIONS':
@@ -35,7 +39,7 @@ def handler(event: dict, context) -> dict:
     req_type = body.get('type')
 
     sender = 'info@stampcopy.com'
-    recipient = 'info@stampcopy.com'
+    recipient = 'zakaz@stampcopy.com'
     password = os.environ.get('SMTP_PASSWORD')
 
     if not password:
@@ -82,11 +86,27 @@ def handler(event: dict, context) -> dict:
     else:
         return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Неизвестный тип заявки'})}
 
-    msg = MIMEMultipart('alternative')
+    msg = MIMEMultipart('mixed')
     msg['Subject'] = subject
     msg['From'] = sender
     msg['To'] = recipient
     msg.attach(MIMEText(html, 'html', 'utf-8'))
+
+    attachment = body.get('attachment')
+    if attachment and attachment.get('data'):
+        raw = attachment['data']
+        if ',' in raw and raw.strip().startswith('data:'):
+            raw = raw.split(',', 1)[1]
+        try:
+            file_bytes = base64.b64decode(raw)
+            part = MIMEBase('application', 'octet-stream')
+            part.set_payload(file_bytes)
+            encoders.encode_base64(part)
+            filename = attachment.get('name', 'attachment')
+            part.add_header('Content-Disposition', f'attachment; filename="{filename}"')
+            msg.attach(part)
+        except (ValueError, TypeError):
+            pass
 
     with smtplib.SMTP_SSL('smtp.mail.ru', 465) as server:
         server.login(sender, password)

@@ -2,11 +2,17 @@ import func2url from '../../backend/func2url.json';
 
 export const SEND_ORDER_URL = func2url['send-order'];
 
+export interface Attachment {
+  name: string;
+  data: string;
+}
+
 export interface ContactPayload {
   type: 'contact';
   name: string;
   phone: string;
   message: string;
+  attachment?: Attachment;
 }
 
 export interface OrderPayload {
