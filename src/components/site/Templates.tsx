@@ -12,9 +12,9 @@ const base: StampConfig = {
 
 const TEMPLATES: Record<string, StampConfig[]> = {
   'ИП': [
-    { ...base, symbol: 'star', showInnerRing: false, showCenterRing: false, topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ', bottomText: 'ОГРНИП 000000000000', centerText: 'Петров', centerSub: 'Олег', centerSub2: 'Иванович' },
+    { ...base, symbol: 'star', symbolRing: 'outer', symbolAngle: 90, symbolMirror: true, showInnerRing: false, showCenterRing: false, topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ', bottomText: 'ОГРНИП 000000000000', centerText: 'Петров', centerSub: 'Олег', centerSub2: 'Иванович' },
     { ...base, symbol: 'none', showInnerRing: true, showCenterRing: true, topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА', innerTopText: 'ОГРНИП 115774000000', innerBottomText: 'ИНН 7745550000', centerText: 'Носов', centerSub: 'Илья', centerSub2: 'Олегович' },
-    { ...base, symbol: 'star', showInnerRing: true, showCenterRing: true, topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА', innerTopText: 'ОГРНИП 115774000000', innerBottomText: 'ИНН 7745550000', centerText: 'Петров', centerSub: 'Петр', centerSub2: 'Андреевич' },
+    { ...base, symbol: 'star', symbolRing: 'outer', symbolAngle: 90, symbolMirror: true, showInnerRing: true, showCenterRing: true, topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА', innerTopText: 'ОГРНИП 115774000000', innerBottomText: 'ИНН 7745550000', centerText: 'Петров', centerSub: 'Петр', centerSub2: 'Андреевич' },
   ],
   'ООО': [
     { ...base, showInnerRing: true, showCenterRing: true, topText: 'ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА', innerTopText: 'ОГРН 5147746000000', innerBottomText: 'ИНН 7700000000', centerText: '«РОМАШКА»' },

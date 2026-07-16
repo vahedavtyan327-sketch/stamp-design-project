@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import StampPreview, { StampConfig } from './StampPreview';
 import type { CartItem } from './types';
 
@@ -17,8 +18,8 @@ interface Osnastka {
 }
 
 const OSNASTKI: Osnastka[] = [
-  { id: 'trodat-printy-4642', name: 'Trodat Printy 4642', shape: 'circle', price: 690, sizes: [42] },
-  { id: 'colop-r40', name: 'Colop R40', shape: 'circle', price: 750, sizes: [40] },
+  { id: 'trodat-printy-4642', name: 'Trodat Printy 4642', shape: 'circle', price: 690, sizes: [30, 35, 38, 40, 42, 45, 50] },
+  { id: 'colop-r40', name: 'Colop R40', shape: 'circle', price: 750, sizes: [30, 35, 38, 40, 42, 45, 50] },
   { id: 'trodat-micro-9342', name: 'Trodat Micro Printy 9342 (карманная)', shape: 'circle', price: 590, sizes: [22] },
   { id: 'square-holder', name: 'Оснастка 4924', shape: 'square', price: 820, sizes: [38, 40, 45] },
   { id: 'triangle-holder', name: 'Треугольная оснастка', shape: 'triangle', price: 890, sizes: [40, 45, 50] },
@@ -35,7 +36,27 @@ interface PresetDef {
 
 const PRESETS: Record<string, PresetDef> = {
   ip_photo: {
-    label: 'ИП',
+    label: 'ИП 1',
+    config: {
+      shape: 'circle',
+      topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ',
+      bottomText: 'ОГРНИП 000000000000',
+      innerTopText: '',
+      innerBottomText: '',
+      centerText: 'Петров',
+      centerSub: 'Олег',
+      centerSub2: 'Иванович',
+      symbol: 'star',
+      symbolRing: 'outer',
+      symbolAngle: 90,
+      symbolMirror: true,
+      border: 'single',
+      showInnerRing: false,
+      showCenterRing: false,
+    },
+  },
+  ip_photo2: {
+    label: 'ИП 2',
     config: {
       shape: 'circle',
       topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ',
@@ -46,6 +67,26 @@ const PRESETS: Record<string, PresetDef> = {
       centerSub: 'Илья',
       centerSub2: 'Олегович',
       symbol: 'none',
+      border: 'single',
+      showInnerRing: true,
+      showCenterRing: true,
+    },
+  },
+  ip_photo3: {
+    label: 'ИП 3',
+    config: {
+      shape: 'circle',
+      topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ',
+      bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА',
+      innerTopText: 'ОГРНИП 115774000000',
+      innerBottomText: 'ИНН 7745550000',
+      centerText: 'Петров',
+      centerSub: 'Петр',
+      centerSub2: 'Андреевич',
+      symbol: 'star',
+      symbolRing: 'outer',
+      symbolAngle: 90,
+      symbolMirror: true,
       border: 'single',
       showInnerRing: true,
       showCenterRing: true,
@@ -182,10 +223,10 @@ const Editor = ({ onAddToCart }: EditorProps) => {
     showInnerRing: PRESETS.ip_photo.config.showInnerRing ?? false,
     showCenterRing: PRESETS.ip_photo.config.showCenterRing ?? false,
     border: 'single',
-    symbol: 'star',
-    symbolAngle: 15,
-    symbolRing: 'outer',
-    symbolMirror: true,
+    symbol: PRESETS.ip_photo.config.symbol ?? 'star',
+    symbolAngle: PRESETS.ip_photo.config.symbolAngle ?? 90,
+    symbolRing: PRESETS.ip_photo.config.symbolRing ?? 'outer',
+    symbolMirror: PRESETS.ip_photo.config.symbolMirror ?? true,
     font: 'Golos Text',
     logo: '',
     logoSize: 60,
@@ -322,7 +363,7 @@ const Editor = ({ onAddToCart }: EditorProps) => {
           </div>
 
           {/* Controls */}
-          <div className="order-1 lg:order-2 grid content-start gap-5 rounded-2xl border border-border/60 bg-card/50 p-6">
+          <div className="order-1 lg:order-2 grid content-start gap-4 rounded-2xl border border-border/60 bg-card/50 p-6 max-h-[80vh] overflow-y-auto">
             {/* presets */}
             <div>
               <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Готовый макет по образцу</Label>
@@ -347,237 +388,256 @@ const Editor = ({ onAddToCart }: EditorProps) => {
               </Tabs>
             </div>
 
-            {/* osnastka */}
-            <div>
-              <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Оснастка</Label>
-              <div className="grid gap-2">
-                {OSN_FILTERED.map((o) => (
-                  <button
-                    key={o.id}
-                    onClick={() => selectOsnastka(o)}
-                    className={`flex items-center justify-between gap-2 rounded-lg border p-2.5 text-sm transition ${osnastka.id === o.id ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}`}
-                  >
-                    <span className="text-left">{o.name}</span>
-                    <span className="shrink-0 text-primary">{o.price} ₽</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+            <Accordion type="multiple" defaultValue={['osnastka', 'text']} className="grid gap-1">
+              {/* osnastka */}
+              <AccordionItem value="osnastka" className="border-border/60">
+                <AccordionTrigger className="py-2.5 text-xs uppercase tracking-wide text-muted-foreground hover:no-underline">
+                  Оснастка и размер
+                </AccordionTrigger>
+                <AccordionContent className="grid gap-3 pt-1">
+                  <div className="grid gap-2">
+                    {OSN_FILTERED.map((o) => (
+                      <button
+                        key={o.id}
+                        onClick={() => selectOsnastka(o)}
+                        className={`flex items-center justify-between gap-2 rounded-lg border p-2.5 text-sm transition ${osnastka.id === o.id ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}`}
+                      >
+                        <span className="text-left">{o.name}</span>
+                        <span className="shrink-0 text-primary">{o.price} ₽</span>
+                      </button>
+                    ))}
+                  </div>
+                  <div>
+                    <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Размер оснастки</Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {osnastka.sizes.map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => setOsnastkaSize(s)}
+                          className={`rounded-lg border p-2 text-sm transition ${osnastkaSize === s ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/50'}`}
+                        >
+                          Ø{s}мм
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
 
-            {/* osnastka size */}
-            <div>
-              <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Размер оснастки</Label>
-              <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${osnastka.sizes.length}, minmax(0, 1fr))` }}>
-                {osnastka.sizes.map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => setOsnastkaSize(s)}
-                    className={`rounded-lg border p-2 text-sm transition ${osnastkaSize === s ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/50'}`}
-                  >
-                    Ø{s} мм
-                  </button>
-                ))}
-              </div>
-            </div>
+              {/* text fields */}
+              <AccordionItem value="text" className="border-border/60">
+                <AccordionTrigger className="py-2.5 text-xs uppercase tracking-wide text-muted-foreground hover:no-underline">
+                  Текст макета
+                </AccordionTrigger>
+                <AccordionContent className="grid gap-3 pt-1">
+                  {config.shape === 'circle' && (
+                    <>
+                      <TextField label="Внешнее кольцо — верх" value={config.topText} onChange={(v) => set('topText', v)} />
+                      <TextField label="Внешнее кольцо — низ" value={config.bottomText} onChange={(v) => set('bottomText', v)} />
+                      <TextField label="Внутреннее кольцо — верх" value={config.innerTopText} onChange={(v) => set('innerTopText', v)} />
+                      <TextField label="Внутреннее кольцо — низ" value={config.innerBottomText} onChange={(v) => set('innerBottomText', v)} />
+                    </>
+                  )}
+                  <TextField label="Центр — фамилия" value={config.centerText} onChange={(v) => set('centerText', v)} />
+                  <TextField label="Центр — имя" value={config.centerSub} onChange={(v) => set('centerSub', v)} />
+                  <TextField label="Центр — отчество" value={config.centerSub2} onChange={(v) => set('centerSub2', v)} />
+                </AccordionContent>
+              </AccordionItem>
 
-            {/* rings visibility */}
-            {config.shape === 'circle' && (
-              <div>
-                <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Кольца печати</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  <button
-                    onClick={() => set('showOuterRing', !config.showOuterRing)}
-                    className={`rounded-lg border p-2 text-xs transition ${config.showOuterRing ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
-                  >
-                    Внешний овал
-                  </button>
-                  <button
-                    onClick={() => set('showInnerRing', !config.showInnerRing)}
-                    className={`rounded-lg border p-2 text-xs transition ${config.showInnerRing ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
-                  >
-                    Внутренний овал
-                  </button>
-                  <button
-                    onClick={() => set('showCenterRing', !config.showCenterRing)}
-                    className={`rounded-lg border p-2 text-xs transition ${config.showCenterRing ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
-                  >
-                    Центральный овал
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* logo upload */}
-            <div>
-              <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Логотип или герб</Label>
-              <div className="flex items-center gap-3">
-                <label className="flex-1 cursor-pointer rounded-lg border border-dashed border-border p-2.5 text-center text-xs text-muted-foreground transition hover:border-primary/50">
-                  <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-                  <Icon name="Upload" size={14} className="mr-1 inline" />
-                  {config.logo ? 'Заменить изображение' : 'Загрузить изображение'}
-                </label>
-                {config.logo && (
-                  <button onClick={() => set('logo', '')} className="text-muted-foreground hover:text-destructive">
-                    <Icon name="Trash2" size={16} />
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* text fields */}
-            <div className="grid gap-3">
+              {/* rings visibility + logo */}
               {config.shape === 'circle' && (
-                <>
-                  <TextField label="Внешнее кольцо — верх" value={config.topText} onChange={(v) => set('topText', v)} />
-                  <TextField label="Внешнее кольцо — низ" value={config.bottomText} onChange={(v) => set('bottomText', v)} />
-                  <TextField label="Внутреннее кольцо — верх" value={config.innerTopText} onChange={(v) => set('innerTopText', v)} />
-                  <TextField label="Внутреннее кольцо — низ" value={config.innerBottomText} onChange={(v) => set('innerBottomText', v)} />
-                </>
+                <AccordionItem value="rings" className="border-border/60">
+                  <AccordionTrigger className="py-2.5 text-xs uppercase tracking-wide text-muted-foreground hover:no-underline">
+                    Овалы и логотип
+                  </AccordionTrigger>
+                  <AccordionContent className="grid gap-3 pt-1">
+                    <div className="grid grid-cols-3 gap-2">
+                      <button
+                        onClick={() => set('showOuterRing', !config.showOuterRing)}
+                        className={`rounded-lg border p-2 text-xs transition ${config.showOuterRing ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
+                      >
+                        Внешний овал
+                      </button>
+                      <button
+                        onClick={() => set('showInnerRing', !config.showInnerRing)}
+                        className={`rounded-lg border p-2 text-xs transition ${config.showInnerRing ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
+                      >
+                        Внутренний овал
+                      </button>
+                      <button
+                        onClick={() => set('showCenterRing', !config.showCenterRing)}
+                        className={`rounded-lg border p-2 text-xs transition ${config.showCenterRing ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
+                      >
+                        Центральный овал
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <label className="flex-1 cursor-pointer rounded-lg border border-dashed border-border p-2.5 text-center text-xs text-muted-foreground transition hover:border-primary/50">
+                        <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                        <Icon name="Upload" size={14} className="mr-1 inline" />
+                        {config.logo ? 'Заменить изображение' : 'Загрузить логотип/герб'}
+                      </label>
+                      {config.logo && (
+                        <button onClick={() => set('logo', '')} className="text-muted-foreground hover:text-destructive">
+                          <Icon name="Trash2" size={16} />
+                        </button>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
               )}
-              <TextField label="Центр — фамилия" value={config.centerText} onChange={(v) => set('centerText', v)} />
-              <TextField label="Центр — имя" value={config.centerSub} onChange={(v) => set('centerSub', v)} />
-              <TextField label="Центр — отчество" value={config.centerSub2} onChange={(v) => set('centerSub2', v)} />
-            </div>
 
-            {/* font */}
-            <div>
-              <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Шрифт</Label>
-              <div className="flex flex-wrap gap-2">
-                {FONTS.map((f) => (
-                  <button
-                    key={f}
-                    onClick={() => set('font', f)}
-                    style={{ fontFamily: f }}
-                    className={`rounded-lg border px-3 py-1.5 text-sm transition ${config.font === f ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/50'}`}
-                  >
-                    {f}
-                  </button>
-                ))}
-              </div>
-            </div>
+              {/* appearance: font, border, symbol */}
+              <AccordionItem value="appearance" className="border-border/60">
+                <AccordionTrigger className="py-2.5 text-xs uppercase tracking-wide text-muted-foreground hover:no-underline">
+                  Шрифт, рамка, символ
+                </AccordionTrigger>
+                <AccordionContent className="grid gap-4 pt-1">
+                  <div>
+                    <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Шрифт</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {FONTS.map((f) => (
+                        <button
+                          key={f}
+                          onClick={() => set('font', f)}
+                          style={{ fontFamily: f }}
+                          className={`rounded-lg border px-3 py-1.5 text-sm transition ${config.font === f ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/50'}`}
+                        >
+                          {f}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-            {/* sliders */}
-            <SliderRow label="Размер шрифта" value={config.fontSize} min={10} max={24} onChange={(v) => set('fontSize', v)} unit="px" />
-            <SliderRow label="Интервал между букв" value={config.letterSpacing} min={0} max={10} onChange={(v) => set('letterSpacing', v)} />
-            {config.shape === 'circle' && (
-              <>
-                <SliderRow
-                  label="Внешнее кольцо — расстояние от края"
-                  value={config.outerRadius}
-                  min={115}
-                  max={145}
-                  onChange={(v) => set('outerRadius', Math.max(v, config.innerRadius + 20))}
-                  unit="px"
-                />
-                <SliderRow
-                  label="Внутреннее кольцо — расстояние от центра"
-                  value={config.innerRadius}
-                  min={55}
-                  max={110}
-                  onChange={(v) => set('innerRadius', Math.min(v, config.outerRadius - 20))}
-                  unit="px"
-                />
-                <SliderRow
-                  label="Интервал между овалами"
-                  value={config.ringGap}
-                  min={6}
-                  max={24}
-                  onChange={(v) => set('ringGap', v)}
-                  unit="px"
-                />
-                {config.showCenterRing && (
-                  <SliderRow
-                    label="Центральный овал — радиус"
-                    value={config.centerRadius}
-                    min={40}
-                    max={80}
-                    onChange={(v) => set('centerRadius', v)}
-                    unit="px"
-                  />
-                )}
-                {config.symbol !== 'none' && (
-                  <SliderRow
-                    label="Положение символа по кругу"
-                    value={config.symbolAngle}
-                    min={0}
-                    max={359}
-                    onChange={(v) => set('symbolAngle', v)}
-                    unit="°"
-                  />
-                )}
-                {config.logo && (
-                  <SliderRow
-                    label="Размер логотипа"
-                    value={config.logoSize}
-                    min={30}
-                    max={110}
-                    onChange={(v) => set('logoSize', v)}
-                    unit="px"
-                  />
-                )}
-              </>
-            )}
-            <SliderRow label="Размер оттиска" value={config.size} min={20} max={60} onChange={(v) => set('size', v)} unit="мм" />
+                  <div>
+                    <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Рамка</Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {(['single', 'double', 'dashed', 'none'] as const).map((b) => (
+                        <button
+                          key={b}
+                          onClick={() => set('border', b)}
+                          className={`rounded-lg border p-2 text-xs transition ${config.border === b ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
+                        >
+                          {b === 'single' ? 'Одна' : b === 'double' ? 'Двойная' : b === 'dashed' ? 'Пунктир' : 'Нет'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-            {/* border */}
-            <div>
-              <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Рамка</Label>
-              <div className="grid grid-cols-4 gap-2">
-                {(['single', 'double', 'dashed', 'none'] as const).map((b) => (
-                  <button
-                    key={b}
-                    onClick={() => set('border', b)}
-                    className={`rounded-lg border p-2 text-xs transition ${config.border === b ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
-                  >
-                    {b === 'single' ? 'Одна' : b === 'double' ? 'Двойная' : b === 'dashed' ? 'Пунктир' : 'Нет'}
-                  </button>
-                ))}
-              </div>
-            </div>
+                  <div>
+                    <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Символ-разделитель</Label>
+                    <div className="grid grid-cols-5 gap-2">
+                      {(['none', 'star', 'star8', 'dot', 'diamond'] as const).map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => set('symbol', s)}
+                          className={`rounded-lg border p-2 text-lg transition ${config.symbol === s ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
+                        >
+                          {s === 'none' ? '—' : s === 'star' ? '★' : s === 'star8' ? '✷' : s === 'dot' ? '●' : '◆'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-            {/* symbol */}
-            <div>
-              <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Символ-разделитель</Label>
-              <div className="grid grid-cols-5 gap-2">
-                {(['none', 'star', 'star8', 'dot', 'diamond'] as const).map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => set('symbol', s)}
-                    className={`rounded-lg border p-2 text-lg transition ${config.symbol === s ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
-                  >
-                    {s === 'none' ? '—' : s === 'star' ? '★' : s === 'star8' ? '✷' : s === 'dot' ? '●' : '◆'}
-                  </button>
-                ))}
-              </div>
-            </div>
+                  {config.shape === 'circle' && config.symbol !== 'none' && (
+                    <div>
+                      <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Кольцо для символа</Label>
+                      <div className="grid grid-cols-3 gap-2 mb-2">
+                        {([
+                          { v: 'outer', label: 'Внешнее' },
+                          { v: 'inner', label: 'Внутреннее' },
+                          { v: 'center', label: 'Центральное' },
+                        ] as const).map((r) => (
+                          <button
+                            key={r.v}
+                            onClick={() => set('symbolRing', r.v)}
+                            className={`rounded-lg border p-2 text-xs transition ${config.symbolRing === r.v ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
+                          >
+                            {r.label}
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        onClick={() => set('symbolMirror', !config.symbolMirror)}
+                        className={`w-full rounded-lg border p-2 text-xs transition ${config.symbolMirror ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
+                      >
+                        Зеркально с другой стороны
+                      </button>
+                    </div>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
 
-            {/* symbol placement */}
-            {config.shape === 'circle' && config.symbol !== 'none' && (
-              <div>
-                <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Кольцо для символа</Label>
-                <div className="grid grid-cols-3 gap-2 mb-2">
-                  {([
-                    { v: 'outer', label: 'Внешнее' },
-                    { v: 'inner', label: 'Внутреннее' },
-                    { v: 'center', label: 'Центральное' },
-                  ] as const).map((r) => (
-                    <button
-                      key={r.v}
-                      onClick={() => set('symbolRing', r.v)}
-                      className={`rounded-lg border p-2 text-xs transition ${config.symbolRing === r.v ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
-                    >
-                      {r.label}
-                    </button>
-                  ))}
-                </div>
-                <button
-                  onClick={() => set('symbolMirror', !config.symbolMirror)}
-                  className={`w-full rounded-lg border p-2 text-xs transition ${config.symbolMirror ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
-                >
-                  Зеркально с другой стороны
-                </button>
-              </div>
-            )}
+              {/* sizes & spacing sliders */}
+              <AccordionItem value="sizes" className="border-border/60">
+                <AccordionTrigger className="py-2.5 text-xs uppercase tracking-wide text-muted-foreground hover:no-underline">
+                  Размеры и интервалы
+                </AccordionTrigger>
+                <AccordionContent className="grid gap-4 pt-1">
+                  <SliderRow label="Размер шрифта" value={config.fontSize} min={10} max={24} onChange={(v) => set('fontSize', v)} unit="px" />
+                  <SliderRow label="Интервал между букв" value={config.letterSpacing} min={0} max={10} onChange={(v) => set('letterSpacing', v)} />
+                  {config.shape === 'circle' && (
+                    <>
+                      <SliderRow
+                        label="Внешнее кольцо — расстояние от края"
+                        value={config.outerRadius}
+                        min={115}
+                        max={145}
+                        onChange={(v) => set('outerRadius', Math.max(v, config.innerRadius + 20))}
+                        unit="px"
+                      />
+                      <SliderRow
+                        label="Внутреннее кольцо — расстояние от центра"
+                        value={config.innerRadius}
+                        min={55}
+                        max={110}
+                        onChange={(v) => set('innerRadius', Math.min(v, config.outerRadius - 20))}
+                        unit="px"
+                      />
+                      <SliderRow
+                        label="Интервал между овалами"
+                        value={config.ringGap}
+                        min={6}
+                        max={24}
+                        onChange={(v) => set('ringGap', v)}
+                        unit="px"
+                      />
+                      {config.showCenterRing && (
+                        <SliderRow
+                          label="Центральный овал — радиус"
+                          value={config.centerRadius}
+                          min={40}
+                          max={80}
+                          onChange={(v) => set('centerRadius', v)}
+                          unit="px"
+                        />
+                      )}
+                      {config.symbol !== 'none' && (
+                        <SliderRow
+                          label="Положение символа по кругу"
+                          value={config.symbolAngle}
+                          min={0}
+                          max={359}
+                          onChange={(v) => set('symbolAngle', v)}
+                          unit="°"
+                        />
+                      )}
+                      {config.logo && (
+                        <SliderRow
+                          label="Размер логотипа"
+                          value={config.logoSize}
+                          min={30}
+                          max={110}
+                          onChange={(v) => set('logoSize', v)}
+                          unit="px"
+                        />
+                      )}
+                    </>
+                  )}
+                  <SliderRow label="Размер оттиска" value={config.size} min={20} max={60} onChange={(v) => set('size', v)} unit="мм" />
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         </div>
       </div>
