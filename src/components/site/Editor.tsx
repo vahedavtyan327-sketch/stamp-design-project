@@ -40,18 +40,18 @@ const PRESETS: Record<string, PresetDef> = {
     config: {
       shape: 'circle',
       topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ',
-      bottomText: 'ОГРНИП 000000000000',
+      bottomText: 'ОГРНИП 0000123456789',
       innerTopText: '',
-      innerBottomText: '',
-      centerText: 'Петров',
-      centerSub: 'Олег',
-      centerSub2: 'Иванович',
+      innerBottomText: 'ИНН 0001234567889 · РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА',
+      centerText: 'Фамилия',
+      centerSub: 'Имя',
+      centerSub2: 'Отчество',
       symbol: 'star',
       symbolRing: 'outer',
       symbolAngle: 90,
       symbolMirror: true,
       border: 'single',
-      showInnerRing: false,
+      showInnerRing: true,
       showCenterRing: false,
     },
   },
@@ -61,32 +61,36 @@ const PRESETS: Record<string, PresetDef> = {
       shape: 'circle',
       topText: 'ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ',
       bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА',
-      innerTopText: 'ОГРН 5147746000000',
-      innerBottomText: 'ИНН 7700000000',
-      centerText: '«РОМАШКА»',
-      centerSub: '',
+      innerTopText: 'ИНН 0123456789',
+      innerBottomText: 'ОГРН 0001123456789',
+      centerText: 'НАЗВАНИЕ',
+      centerSub: 'КОМПАНИИ',
       centerSub2: '',
       symbol: 'star',
+      symbolMirror: true,
       border: 'single',
       showInnerRing: true,
-      showCenterRing: true,
+      showCenterRing: false,
     },
   },
   doctor: {
     label: 'Врач',
     config: {
       shape: 'circle',
-      topText: 'ВРАЧ-СТОМАТОЛОГ',
-      bottomText: 'КЛИНИКА «ЗДОРОВЬЕ»',
-      innerTopText: 'ЛИЦЕНЗИЯ ЛО-77-01-000000',
+      topText: 'Иванов Иван Иванович',
+      bottomText: '',
+      innerTopText: '',
       innerBottomText: '',
-      centerText: 'Хмаренко',
-      centerSub: 'Антон',
-      centerSub2: 'Николаевич',
+      centerText: 'ВРАЧ',
+      centerSub: '',
+      centerSub2: '',
       symbol: 'star',
-      border: 'double',
-      showInnerRing: true,
-      showCenterRing: true,
+      symbolRing: 'outer',
+      symbolAngle: 180,
+      symbolMirror: false,
+      border: 'single',
+      showInnerRing: false,
+      showCenterRing: false,
     },
   },
   gerb: {
@@ -96,14 +100,16 @@ const PRESETS: Record<string, PresetDef> = {
       topText: 'ГОСУДАРСТВЕННОЕ БЮДЖЕТНОЕ УЧРЕЖДЕНИЕ',
       bottomText: 'ДЕПАРТАМЕНТ ЗДРАВООХРАНЕНИЯ · ГОРОД МОСКВА',
       innerTopText: 'ЗАРЕГИСТРИРОВАНО В РЕЕСТРЕ',
-      innerBottomText: 'ПЕЧАТЕЙ №764754744164',
+      innerBottomText: 'ОГРН 0000000000000 · ИНН 0000000000',
       centerText: 'ГЕРБ',
       centerSub: 'ОФИЦИАЛЬНАЯ',
       centerSub2: '',
       symbol: 'star8',
+      symbolRing: 'outer',
+      symbolMirror: true,
       border: 'double',
       showInnerRing: true,
-      showCenterRing: false,
+      showCenterRing: true,
     },
   },
   triangle: {
@@ -112,10 +118,13 @@ const PRESETS: Record<string, PresetDef> = {
       shape: 'triangle',
       topText: '',
       bottomText: '',
+      triangleLeftText: 'ЛИЦЕНЗИЯ № ЛО-11-22-000001',
+      triangleRightText: 'ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ',
+      triangleBottomText: 'ЛИЦЕНЗИЯ № ЛО-11-22-000001',
       centerText: 'ДЛЯ',
-      centerSub: 'СПРАВОК',
-      centerSub2: '',
-      border: 'single',
+      centerSub: 'РЕЦЕПТОВ',
+      centerSub2: 'ООО «ВАШЕ НАЗВАНИЕ»',
+      border: 'double',
     },
   },
 };
@@ -173,14 +182,25 @@ const INITIAL_CONFIG: StampConfig = {
   logoDistance: 0,
   logoGap: 10,
   textMirror: {},
+  triangleLeftText: '',
+  triangleRightText: '',
+  triangleBottomText: '',
+  barcodeType: 'none',
+  barcodeValue: '',
+  barcodeSize: 44,
+  barcodeAngle: 0,
+  barcodeDistance: 0,
 };
 
 const LAYER_DEFS = [
-  { key: 'name', label: 'Фамилия / Имя / Отчество', fields: ['centerText', 'centerSub', 'centerSub2'] as const, circleOnly: false },
-  { key: 'top', label: 'Внешнее кольцо — верх', fields: ['topText'] as const, circleOnly: true },
-  { key: 'bottom', label: 'Внешнее кольцо — низ', fields: ['bottomText'] as const, circleOnly: true },
-  { key: 'innerTop', label: 'Внутреннее кольцо — верх', fields: ['innerTopText'] as const, circleOnly: true },
-  { key: 'innerBottom', label: 'Внутреннее кольцо — низ', fields: ['innerBottomText'] as const, circleOnly: true },
+  { key: 'name', label: 'Фамилия / Имя / Отчество', fields: ['centerText', 'centerSub', 'centerSub2'] as const, shapes: ['circle', 'square', 'triangle'] as const },
+  { key: 'top', label: 'Внешнее кольцо — верх', fields: ['topText'] as const, shapes: ['circle'] as const },
+  { key: 'bottom', label: 'Внешнее кольцо — низ', fields: ['bottomText'] as const, shapes: ['circle'] as const },
+  { key: 'innerTop', label: 'Внутреннее кольцо — верх', fields: ['innerTopText'] as const, shapes: ['circle'] as const },
+  { key: 'innerBottom', label: 'Внутреннее кольцо — низ', fields: ['innerBottomText'] as const, shapes: ['circle'] as const },
+  { key: 'triLeft', label: 'Левая грань', fields: ['triangleLeftText'] as const, shapes: ['triangle'] as const },
+  { key: 'triRight', label: 'Правая грань', fields: ['triangleRightText'] as const, shapes: ['triangle'] as const },
+  { key: 'triBottom', label: 'Нижняя грань', fields: ['triangleBottomText'] as const, shapes: ['triangle'] as const },
 ] as const;
 
 const FIELD_LABELS: Record<string, string> = {
@@ -191,6 +211,9 @@ const FIELD_LABELS: Record<string, string> = {
   bottomText: 'Текст',
   innerTopText: 'Текст',
   innerBottomText: 'Текст',
+  triangleLeftText: 'Текст',
+  triangleRightText: 'Текст',
+  triangleBottomText: 'Текст',
 };
 
 interface EditorProps {
@@ -202,7 +225,7 @@ const Editor = ({ onAddToCart }: EditorProps) => {
   const [history, setHistory] = useState<StampConfig[]>([INITIAL_CONFIG]);
   const [histIndex, setHistIndex] = useState(0);
   const [step, setStep] = useState<'design' | 'order'>('design');
-  const [rightTab, setRightTab] = useState<'text' | 'shape' | 'symbols' | 'logo'>('text');
+  const [rightTab, setRightTab] = useState<'text' | 'shape' | 'symbols' | 'logo' | 'barcode'>('text');
   const [zoom, setZoom] = useState(100);
   const [rotateDeg, setRotateDeg] = useState(0);
   const [selectedLayer, setSelectedLayer] = useState<string | null>('name');
@@ -469,7 +492,7 @@ const Editor = ({ onAddToCart }: EditorProps) => {
                 <div className="border-b border-border/60 p-3 lg:border-b-0 lg:border-r">
                   <div className="mb-2 px-1 text-xs uppercase tracking-wide text-muted-foreground">Слои</div>
                   <div className="grid gap-1">
-                    {LAYER_DEFS.filter((l) => !l.circleOnly || config.shape === 'circle').map((layer) => (
+                    {LAYER_DEFS.filter((l) => (l.shapes as readonly string[]).includes(config.shape)).map((layer) => (
                       <div key={layer.key}>
                         <button
                           onClick={() => setSelectedLayer((cur) => (cur === layer.key ? null : layer.key))}
@@ -541,6 +564,13 @@ const Editor = ({ onAddToCart }: EditorProps) => {
                             };
                           });
                         }}
+                        onBarcodeChange={(change) => {
+                          applyChange((p) => ({
+                            ...p,
+                            barcodeAngle: ((change.angle % 360) + 360) % 360,
+                            barcodeDistance: change.distance,
+                          }));
+                        }}
                       />
                     </div>
                   </div>
@@ -594,6 +624,7 @@ const Editor = ({ onAddToCart }: EditorProps) => {
                       { v: 'shape', icon: 'Shapes', label: 'Фигура' },
                       { v: 'symbols', icon: 'Sparkles', label: 'Символы' },
                       { v: 'logo', icon: 'Image', label: 'Лого' },
+                      { v: 'barcode', icon: 'ScanLine', label: 'Штрихкод' },
                     ] as const).map((t) => (
                       <button
                         key={t.v}
@@ -917,6 +948,48 @@ const Editor = ({ onAddToCart }: EditorProps) => {
                     )}
                     {rightTab === 'logo' && config.shape !== 'circle' && (
                       <p className="text-xs text-muted-foreground">Логотип доступен только для круглой печати</p>
+                    )}
+
+                    {rightTab === 'barcode' && (
+                      <div className="grid gap-4">
+                        <div>
+                          <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">Тип кода</Label>
+                          <div className="grid grid-cols-4 gap-2">
+                            {([
+                              { v: 'none', label: 'Нет' },
+                              { v: 'barcode', label: 'Штрихкод' },
+                              { v: 'qr', label: 'QR' },
+                              { v: 'datamatrix', label: 'Data Matrix' },
+                            ] as const).map((b) => (
+                              <button
+                                key={b.v}
+                                onClick={() => set('barcodeType', b.v)}
+                                className={`rounded-lg border p-2 text-xs transition ${config.barcodeType === b.v ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
+                              >
+                                {b.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {config.barcodeType !== 'none' && (
+                          <>
+                            <TextField
+                              label={config.barcodeType === 'qr' ? 'Ссылка или текст' : 'Значение кода'}
+                              value={config.barcodeValue}
+                              onChange={(v) => set('barcodeValue', v)}
+                            />
+                            <SliderRow label="Размер" value={config.barcodeSize} min={24} max={90} onChange={(v) => set('barcodeSize', v)} unit="px" />
+                            <SliderRow label="Отступ от центра" value={config.barcodeDistance} min={0} max={110} onChange={(v) => set('barcodeDistance', v)} unit="px" />
+                            {config.barcodeDistance > 0 && (
+                              <SliderRow label="Положение по кругу" value={config.barcodeAngle} min={0} max={359} onChange={(v) => set('barcodeAngle', v)} unit="°" />
+                            )}
+                            <p className="text-[11px] text-muted-foreground">
+                              Код можно перетаскивать мышкой прямо на макете
+                            </p>
+                          </>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>

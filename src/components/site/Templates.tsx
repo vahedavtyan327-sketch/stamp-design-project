@@ -10,29 +10,31 @@ const base: StampConfig = {
   symbol3: false, symbol3Angle: 0, symbol3Offset: 0, symbol4: false, symbol4Angle: 0, symbol4Offset: 0, symbol5: false, symbol5Angle: 0, symbol5Offset: 0,
   topTextOffset: 0, bottomTextOffset: 0, innerTopTextOffset: 0, innerBottomTextOffset: 0, font: 'Golos Text',
   logo: '', logoSize: 60, logoRotation: 0, logoAngle: 0, logoDistance: 0, logoGap: 10, textMirror: {},
+  triangleLeftText: '', triangleRightText: '', triangleBottomText: '',
+  barcodeType: 'none', barcodeValue: '', barcodeSize: 44, barcodeAngle: 0, barcodeDistance: 0,
 };
 
 const TEMPLATES: Record<string, StampConfig[]> = {
   'ИП': [
-    { ...base, symbol: 'star', symbolRing: 'outer', symbolAngle: 90, symbolMirror: true, showInnerRing: false, showCenterRing: false, topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ', bottomText: 'ОГРНИП 000000000000', centerText: 'Петров', centerSub: 'Олег', centerSub2: 'Иванович' },
+    { ...base, symbol: 'star', symbolRing: 'outer', symbolAngle: 90, symbolMirror: true, showInnerRing: true, showCenterRing: false, topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ', bottomText: 'ОГРНИП 0000123456789', innerBottomText: 'ИНН 0001234567889 · РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА', centerText: 'Петров', centerSub: 'Олег', centerSub2: 'Иванович' },
     { ...base, symbol: 'none', showInnerRing: true, showCenterRing: true, topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА', innerTopText: 'ОГРНИП 115774000000', innerBottomText: 'ИНН 7745550000', centerText: 'Носов', centerSub: 'Илья', centerSub2: 'Олегович' },
     { ...base, symbol: 'star', symbolRing: 'outer', symbolAngle: 90, symbolMirror: true, showInnerRing: true, showCenterRing: true, topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА', innerTopText: 'ОГРНИП 115774000000', innerBottomText: 'ИНН 7745550000', centerText: 'Петров', centerSub: 'Петр', centerSub2: 'Андреевич' },
   ],
   'ООО': [
-    { ...base, showInnerRing: true, showCenterRing: true, topText: 'ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА', innerTopText: 'ОГРН 5147746000000', innerBottomText: 'ИНН 7700000000', centerText: '«РОМАШКА»' },
+    { ...base, showInnerRing: true, symbolMirror: true, topText: 'ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА', innerTopText: 'ИНН 0123456789', innerBottomText: 'ОГРН 0001123456789', centerText: 'НАЗВАНИЕ', centerSub: 'КОМПАНИИ' },
     { ...base, showInnerRing: true, showCenterRing: true, border: 'double', topText: 'ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', bottomText: 'ГОРОД МОСКВА', innerTopText: 'ОГРН 5127746000000', innerBottomText: 'ИНН 7700000000', centerText: '«АЛЬФА ТРЕЙД»' },
   ],
   'Врачи': [
-    { ...base, showInnerRing: true, showCenterRing: true, border: 'double', topText: 'ВРАЧ-СТОМАТОЛОГ', bottomText: 'КЛИНИКА «ЗДОРОВЬЕ»', innerTopText: 'ЛИЦЕНЗИЯ ЛО-77-01-000000', centerText: 'Хмаренко', centerSub: 'Антон', centerSub2: 'Николаевич' },
-    { ...base, showInnerRing: true, showCenterRing: true, border: 'double', symbol: 'dot', topText: 'ВРАЧ-КАРДИОЛОГ', bottomText: 'КЛИНИКА «ЗДОРОВЬЕ»', innerTopText: 'ЛИЦЕНЗИЯ ЛО-77-01-000001', centerText: 'Козлова', centerSub: 'Мария', centerSub2: 'Игоревна' },
+    { ...base, symbol: 'star', symbolAngle: 180, symbolMirror: false, topText: 'Хмаренко Антон Николаевич', centerText: 'ВРАЧ' },
+    { ...base, symbol: 'star', symbolAngle: 180, symbolMirror: false, topText: 'Козлова Мария Игоревна', centerText: 'ВРАЧ' },
   ],
   'Гербовые': [
-    { ...base, topText: 'ГОСУДАРСТВЕННОЕ БЮДЖЕТНОЕ УЧРЕЖДЕНИЕ', bottomText: 'ДЕПАРТАМЕНТ ЗДРАВООХРАНЕНИЯ · ГОРОД МОСКВА', centerText: 'ГЕРБ', centerSub: 'ОФИЦИАЛЬНАЯ', border: 'double', symbol: 'star8' },
-    { ...base, topText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ · НОТАРИУС', bottomText: 'ГОРОД МОСКВА', centerText: 'ГЕРБ', centerSub: 'ЛИЦЕНЗИЯ', border: 'double' },
+    { ...base, showInnerRing: true, showCenterRing: true, symbol: 'star8', symbolMirror: true, topText: 'ГОСУДАРСТВЕННОЕ БЮДЖЕТНОЕ УЧРЕЖДЕНИЕ', bottomText: 'ДЕПАРТАМЕНТ ЗДРАВООХРАНЕНИЯ · ГОРОД МОСКВА', innerTopText: 'ЗАРЕГИСТРИРОВАНО В РЕЕСТРЕ', innerBottomText: 'ОГРН 0000000000000 · ИНН 0000000000', centerText: 'ГЕРБ', centerSub: 'ОФИЦИАЛЬНАЯ', border: 'double' },
+    { ...base, showInnerRing: true, showCenterRing: true, symbol: 'star8', symbolMirror: true, topText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ · НОТАРИУС', bottomText: 'ГОРОД МОСКВА', innerTopText: 'ЗАРЕГИСТРИРОВАНО В РЕЕСТРЕ', innerBottomText: 'ЛИЦЕНЗИЯ № 0000000000', centerText: 'ГЕРБ', centerSub: 'ЛИЦЕНЗИЯ', border: 'double' },
   ],
   'Треугольные': [
-    { ...base, shape: 'triangle', topText: '', bottomText: '', centerText: 'ДЛЯ', centerSub: 'СПРАВОК' },
-    { ...base, shape: 'triangle', topText: '', bottomText: '', centerText: 'ОТК', centerSub: 'КОНТРОЛЬ', border: 'double' },
+    { ...base, shape: 'triangle', border: 'double', triangleLeftText: 'ЛИЦЕНЗИЯ № ЛО-11-22-000001', triangleRightText: 'ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', triangleBottomText: 'ЛИЦЕНЗИЯ № ЛО-11-22-000001', centerText: 'ДЛЯ', centerSub: 'РЕЦЕПТОВ', centerSub2: 'ООО «ВАШЕ НАЗВАНИЕ»' },
+    { ...base, shape: 'triangle', triangleLeftText: 'ДЛЯ СЛУЖЕБНЫХ ОТМЕТОК', triangleRightText: 'ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', triangleBottomText: 'ОТДЕЛ КАДРОВ', centerText: 'ОТК', centerSub: 'КОНТРОЛЬ', border: 'double' },
   ],
   'Квадратные': [
     { ...base, shape: 'square', topText: '', bottomText: '', centerText: 'КОПИЯ', centerSub: 'ВЕРНА' },

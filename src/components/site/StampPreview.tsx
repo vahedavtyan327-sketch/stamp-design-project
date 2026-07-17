@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import Icon from '@/components/ui/icon';
+import Barcode from './Barcode';
 
 export type EditableField =
   | 'topText'
@@ -8,7 +9,10 @@ export type EditableField =
   | 'innerBottomText'
   | 'centerText'
   | 'centerSub'
-  | 'centerSub2';
+  | 'centerSub2'
+  | 'triangleLeftText'
+  | 'triangleRightText'
+  | 'triangleBottomText';
 
 export interface StampConfig {
   shape: 'circle' | 'square' | 'triangle';
@@ -58,6 +62,14 @@ export interface StampConfig {
   logoDistance: number;
   logoGap: number;
   textMirror: Partial<Record<EditableField, { h?: boolean; v?: boolean }>>;
+  triangleLeftText: string;
+  triangleRightText: string;
+  triangleBottomText: string;
+  barcodeType: 'none' | 'barcode' | 'qr' | 'datamatrix';
+  barcodeValue: string;
+  barcodeSize: number;
+  barcodeAngle: number;
+  barcodeDistance: number;
 }
 
 const SYMBOLS: Record<string, string> = {
@@ -79,6 +91,11 @@ export interface LogoChange {
   distance: number;
 }
 
+export interface BarcodeChange {
+  angle: number;
+  distance: number;
+}
+
 interface StampPreviewProps {
   config: StampConfig;
   size?: number;
@@ -86,9 +103,10 @@ interface StampPreviewProps {
   onSymbolChange?: (which: SymbolSlot, change: SymbolChange) => void;
   onLogoChange?: (change: LogoChange) => void;
   onMirrorToggle?: (field: EditableField, axis: 'h' | 'v') => void;
+  onBarcodeChange?: (change: BarcodeChange) => void;
 }
 
-const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange, onLogoChange, onMirrorToggle }: StampPreviewProps) => {
+const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange, onLogoChange, onMirrorToggle, onBarcodeChange }: StampPreviewProps) => {
   const c = 160;
   const outerBorderR = 150;
   const svgRef = useRef<SVGSVGElement>(null);
@@ -102,11 +120,12 @@ const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange, onLogo
     width: number;
     height: number;
   } | null>(null);
-  const dragState = useRef<{ which: SymbolSlot | 'logo' } | null>(null);
+  const dragState = useRef<{ which: SymbolSlot | 'logo' | 'barcode' } | null>(null);
 
   const editable = !!onTextChange;
   const symbolDraggable = !!onSymbolChange;
   const logoDraggable = !!onLogoChange;
+  const barcodeDraggable = !!onBarcodeChange;
   const editing = interaction && interaction.mode === 'editing' ? interaction : null;
 
   const getScale = () => {
@@ -134,7 +153,7 @@ const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange, onLogo
   };
 
   const handleSymbolPointerMove = (e: React.PointerEvent) => {
-    if (!dragState.current || dragState.current.which === 'logo' || !onSymbolChange) return;
+    if (!dragState.current || dragState.current.which === 'logo' || dragState.current.which === 'barcode' || !onSymbolChange) return;
     const polar = pointToPolar(e.clientX, e.clientY);
     if (!polar) return;
     const baseR = ringRadiusFor(config.symbolRing);
@@ -160,6 +179,20 @@ const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange, onLogo
     const polar = pointToPolar(e.clientX, e.clientY);
     if (!polar) return;
     onLogoChange({ angle: Math.round(polar.angleDeg), distance: Math.round(polar.dist) });
+  };
+
+  const handleBarcodePointerDown = (e: React.PointerEvent) => {
+    if (!barcodeDraggable) return;
+    e.stopPropagation();
+    (e.target as Element).setPointerCapture(e.pointerId);
+    dragState.current = { which: 'barcode' };
+  };
+
+  const handleBarcodePointerMove = (e: React.PointerEvent) => {
+    if (!dragState.current || dragState.current.which !== 'barcode' || !onBarcodeChange) return;
+    const polar = pointToPolar(e.clientX, e.clientY);
+    if (!polar) return;
+    onBarcodeChange({ angle: Math.round(polar.angleDeg), distance: Math.round(polar.dist) });
   };
 
   const ringRadiusFor = (ring: StampConfig['symbolRing']) => {
@@ -218,7 +251,7 @@ const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange, onLogo
     // arc length (px) needed per character, based on font size + letter spacing
     const charArc = config.fontSize * 0.62 + config.letterSpacing;
     const anglePerChar = (charArc / radius) * (180 / Math.PI);
-    const totalAngle = Math.min(anglePerChar * chars.length, 210);
+    const totalAngle = Math.min(anglePerChar * chars.length, 340);
 
     const isTop = position === 'top';
     // base center angle: -90 (12 o'clock) for top arcs, 90 (6 o'clock) for bottom arcs,
@@ -257,6 +290,73 @@ const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange, onLogo
               textAnchor="middle"
               dominantBaseline="central"
               transform={`rotate(${rot} ${x} ${y})`}
+            >
+              {ch}
+            </text>
+          );
+        })}
+      </g>
+    );
+  };
+
+  const triApex = { x: 160, y: 24 };
+  const triRight = { x: 300, y: 290 };
+  const triLeft = { x: 20, y: 290 };
+  const triCentroid = {
+    x: (triApex.x + triRight.x + triLeft.x) / 3,
+    y: (triApex.y + triRight.y + triLeft.y) / 3,
+  };
+
+  const renderEdgeText = (
+    text: string,
+    p1: { x: number; y: number },
+    p2: { x: number; y: number },
+    inset: number,
+    field: EditableField
+  ) => {
+    if (!text) return null;
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const edgeLen = Math.sqrt(dx * dx + dy * dy);
+    const ux = dx / edgeLen;
+    const uy = dy / edgeLen;
+    let nx = -uy;
+    let ny = ux;
+    const midX = (p1.x + p2.x) / 2;
+    const midY = (p1.y + p2.y) / 2;
+    if (nx * (triCentroid.x - midX) + ny * (triCentroid.y - midY) < 0) {
+      nx = -nx;
+      ny = -ny;
+    }
+
+    const chars = text.split('');
+    const charArc = config.fontSize * 0.62 + config.letterSpacing;
+    const totalLen = Math.min(charArc * chars.length, edgeLen - 24);
+    const startDist = (edgeLen - totalLen) / 2;
+    const step = chars.length > 1 ? totalLen / (chars.length - 1) : 0;
+    const rotDeg = (Math.atan2(dy, dx) * 180) / Math.PI;
+
+    return (
+      <g
+        className={editable ? 'cursor-pointer' : undefined}
+        onClick={editable ? (e) => { e.stopPropagation(); selectField(field, e.currentTarget, text); } : undefined}
+      >
+        {chars.map((ch, i) => {
+          const dist = startDist + step * i;
+          const x = p1.x + ux * dist + nx * inset;
+          const y = p1.y + uy * dist + ny * inset;
+          return (
+            <text
+              key={`${field}-${i}`}
+              x={x}
+              y={y}
+              fontSize={config.fontSize}
+              fontFamily={config.font}
+              fontWeight={600}
+              fill="#000"
+              textAnchor="middle"
+              dominantBaseline="central"
+              transform={`rotate(${rotDeg} ${x} ${y})`}
             >
               {ch}
             </text>
@@ -353,6 +453,11 @@ const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange, onLogo
     ? c + config.logoDistance * Math.sin(logoAngleRad)
     : undefined;
 
+  const barcodeAngleRad = ((config.barcodeAngle - 90) * Math.PI) / 180;
+  const hasCustomBarcodePos = (config.barcodeDistance ?? 0) > 0;
+  const barcodeX = hasCustomBarcodePos ? c + config.barcodeDistance * Math.cos(barcodeAngleRad) : c;
+  const barcodeY = hasCustomBarcodePos ? c + config.barcodeDistance * Math.sin(barcodeAngleRad) : 235;
+
   const centerTextEl = (field: EditableField, text: string, y: number, fontSize: number, weight: number) => {
     const mirror = config.textMirror?.[field];
     const groupTransforms: string[] = [];
@@ -409,6 +514,14 @@ const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange, onLogo
           </>
         )}
 
+        {config.shape === 'triangle' && (
+          <>
+            {renderEdgeText(config.triangleLeftText, triLeft, triApex, 14, 'triangleLeftText')}
+            {renderEdgeText(config.triangleRightText, triApex, triRight, 14, 'triangleRightText')}
+            {renderEdgeText(config.triangleBottomText, triRight, triLeft, 14, 'triangleBottomText')}
+          </>
+        )}
+
         {hasLogo && (
           <image
             href={config.logo}
@@ -428,6 +541,20 @@ const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange, onLogo
         {config.centerText && centerTextEl('centerText', config.centerText, centerLineY(0), config.fontSize + 2, 700)}
         {config.centerSub && centerTextEl('centerSub', config.centerSub, centerLineY(1), config.fontSize + 1, 600)}
         {config.centerSub2 && centerTextEl('centerSub2', config.centerSub2, centerLineY(2), config.fontSize + 1, 600)}
+
+        {config.barcodeType !== 'none' && config.barcodeValue && (
+          <Barcode
+            type={config.barcodeType}
+            value={config.barcodeValue}
+            x={barcodeX}
+            y={barcodeY}
+            size={config.barcodeSize}
+            className={barcodeDraggable ? 'cursor-move touch-none' : undefined}
+            onPointerDown={handleBarcodePointerDown}
+            onPointerMove={handleBarcodePointerMove}
+            onPointerUp={handleSymbolPointerUp}
+          />
+        )}
       </svg>
 
       {interaction?.mode === 'selected' && (

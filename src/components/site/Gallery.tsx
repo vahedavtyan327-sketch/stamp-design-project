@@ -7,15 +7,17 @@ const base: StampConfig = {
   symbol3: false, symbol3Angle: 0, symbol3Offset: 0, symbol4: false, symbol4Angle: 0, symbol4Offset: 0, symbol5: false, symbol5Angle: 0, symbol5Offset: 0,
   topTextOffset: 0, bottomTextOffset: 0, innerTopTextOffset: 0, innerBottomTextOffset: 0, font: 'Golos Text',
   logo: '', logoSize: 60, logoRotation: 0, logoAngle: 0, logoDistance: 0, logoGap: 10, textMirror: {},
+  triangleLeftText: '', triangleRightText: '', triangleBottomText: '',
+  barcodeType: 'none', barcodeValue: '', barcodeSize: 44, barcodeAngle: 0, barcodeDistance: 0,
 };
 
 const SAMPLES: StampConfig[] = [
-  { ...base, showInnerRing: true, showCenterRing: true, topText: 'ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', bottomText: 'ГОРОД МОСКВА', innerTopText: 'ОГРН 5127746000000', innerBottomText: 'ИНН 7700000000', centerText: '«АЛЬФА ТРЕЙД»' },
-  { ...base, showInnerRing: false, showCenterRing: false, symbol: 'star', topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ', bottomText: 'ОГРНИП 770000000000', centerText: 'Смирнов', centerSub: 'Алексей', centerSub2: 'Викторович' },
-  { ...base, showInnerRing: true, showCenterRing: true, border: 'double', symbol: 'dot', topText: 'ВРАЧ-КАРДИОЛОГ', bottomText: 'КЛИНИКА «ЗДОРОВЬЕ»', innerTopText: 'ЛИЦЕНЗИЯ ЛО-77', centerText: 'Козлова', centerSub: 'Мария', centerSub2: 'Игоревна' },
-  { ...base, shape: 'triangle', centerText: 'ОПЛАЧЕНО', centerSub: 'касса №2' },
+  { ...base, showInnerRing: true, symbolMirror: true, topText: 'ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', bottomText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА', innerTopText: 'ИНН 0123456789', innerBottomText: 'ОГРН 0001123456789', centerText: 'НАЗВАНИЕ', centerSub: 'КОМПАНИИ' },
+  { ...base, showInnerRing: true, symbol: 'star', symbolMirror: true, topText: 'ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ', bottomText: 'ОГРНИП 0000123456789', innerBottomText: 'ИНН 0001234567889 · РОССИЙСКАЯ ФЕДЕРАЦИЯ ГОРОД МОСКВА', centerText: 'Смирнов', centerSub: 'Алексей', centerSub2: 'Викторович' },
+  { ...base, symbol: 'star', symbolAngle: 180, symbolMirror: false, topText: 'Козлова Мария Игоревна', centerText: 'ВРАЧ' },
+  { ...base, shape: 'triangle', border: 'double', triangleLeftText: 'ЛИЦЕНЗИЯ № ЛО-11-22-000001', triangleRightText: 'ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', triangleBottomText: 'ЛИЦЕНЗИЯ № ЛО-11-22-000001', centerText: 'ДЛЯ', centerSub: 'РЕЦЕПТОВ', centerSub2: 'ООО «ВАШЕ НАЗВАНИЕ»' },
   { ...base, shape: 'square', centerText: 'КОПИЯ', centerSub: 'ВЕРНА', border: 'dashed' },
-  { ...base, topText: 'РОССИЙСКАЯ ФЕДЕРАЦИЯ', bottomText: 'ГОС. УЧРЕЖДЕНИЕ', centerText: 'ГЕРБ', centerSub: 'ОФИЦИАЛЬНО', border: 'double', symbol: 'star8' },
+  { ...base, showInnerRing: true, showCenterRing: true, symbol: 'star8', symbolMirror: true, topText: 'ГОСУДАРСТВЕННОЕ БЮДЖЕТНОЕ УЧРЕЖДЕНИЕ', bottomText: 'ДЕПАРТАМЕНТ ЗДРАВООХРАНЕНИЯ · ГОРОД МОСКВА', innerTopText: 'ЗАРЕГИСТРИРОВАНО В РЕЕСТРЕ', innerBottomText: 'ОГРН 0000000000000 · ИНН 0000000000', centerText: 'ГЕРБ', centerSub: 'ОФИЦИАЛЬНАЯ', border: 'double' },
 ];
 
 const Gallery = () => (
