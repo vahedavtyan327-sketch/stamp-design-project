@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { toast } from '@/hooks/use-toast';
 import { recognizeStamp } from '@/lib/api';
-import StampPreview, { StampConfig } from './StampPreview';
+import StampPreview, { StampConfig, EditableField } from './StampPreview';
 import type { CartItem } from './types';
 
 interface Osnastka {
@@ -172,6 +172,7 @@ const INITIAL_CONFIG: StampConfig = {
   logoAngle: 0,
   logoDistance: 0,
   logoGap: 10,
+  textMirror: {},
 };
 
 const LAYER_DEFS = [
@@ -528,11 +529,23 @@ const Editor = ({ onAddToCart }: EditorProps) => {
                             logoDistance: change.distance,
                           }));
                         }}
+                        onMirrorToggle={(field: EditableField, axis) => {
+                          applyChange((p) => {
+                            const current = p.textMirror?.[field] || {};
+                            return {
+                              ...p,
+                              textMirror: {
+                                ...p.textMirror,
+                                [field]: { ...current, [axis]: !current[axis] },
+                              },
+                            };
+                          });
+                        }}
                       />
                     </div>
                   </div>
                   <p className="text-center text-xs text-muted-foreground">
-                    Кликните по тексту, чтобы отредактировать. Символы и логотип можно перетаскивать мышкой.
+                    Кликните по тексту, чтобы выделить его — появятся иконки редактирования, отражения и удаления. Символы и логотип можно перетаскивать мышкой.
                   </p>
 
                   {/* bottom toolbar: rotate + zoom */}

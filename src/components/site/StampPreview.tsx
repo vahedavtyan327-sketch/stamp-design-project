@@ -1,4 +1,14 @@
 import { useRef, useState } from 'react';
+import Icon from '@/components/ui/icon';
+
+export type EditableField =
+  | 'topText'
+  | 'bottomText'
+  | 'innerTopText'
+  | 'innerBottomText'
+  | 'centerText'
+  | 'centerSub'
+  | 'centerSub2';
 
 export interface StampConfig {
   shape: 'circle' | 'square' | 'triangle';
@@ -47,6 +57,7 @@ export interface StampConfig {
   logoAngle: number;
   logoDistance: number;
   logoGap: number;
+  textMirror: Partial<Record<EditableField, { h?: boolean; v?: boolean }>>;
 }
 
 const SYMBOLS: Record<string, string> = {
@@ -55,15 +66,6 @@ const SYMBOLS: Record<string, string> = {
   dot: '●',
   diamond: '◆',
 };
-
-export type EditableField =
-  | 'topText'
-  | 'bottomText'
-  | 'innerTopText'
-  | 'innerBottomText'
-  | 'centerText'
-  | 'centerSub'
-  | 'centerSub2';
 
 export interface SymbolChange {
   angle: number;
@@ -83,13 +85,15 @@ interface StampPreviewProps {
   onTextChange?: (field: EditableField, value: string) => void;
   onSymbolChange?: (which: SymbolSlot, change: SymbolChange) => void;
   onLogoChange?: (change: LogoChange) => void;
+  onMirrorToggle?: (field: EditableField, axis: 'h' | 'v') => void;
 }
 
-const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange, onLogoChange }: StampPreviewProps) => {
+const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange, onLogoChange, onMirrorToggle }: StampPreviewProps) => {
   const c = 160;
   const outerBorderR = 150;
   const svgRef = useRef<SVGSVGElement>(null);
-  const [editing, setEditing] = useState<{
+  const [interaction, setInteraction] = useState<{
+    mode: 'selected' | 'editing';
     field: EditableField;
     original: string;
     value: string;
@@ -103,6 +107,7 @@ const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange, onLogo
   const editable = !!onTextChange;
   const symbolDraggable = !!onSymbolChange;
   const logoDraggable = !!onLogoChange;
+  const editing = interaction && interaction.mode === 'editing' ? interaction : null;
 
   const getScale = () => {
     const rect = svgRef.current?.getBoundingClientRect();
@@ -163,29 +168,51 @@ const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange, onLogo
     return config.outerRadius + (outerBorderR - config.outerRadius) / 2 + 4;
   };
 
-  const startEdit = (field: EditableField, el: SVGGraphicsElement, initial: string) => {
-    if (!editable) return;
+  const computeBox = (el: SVGGraphicsElement, padX = 3, padY = 2) => {
+    const svgRect = svgRef.current?.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+    if (svgRect && svgRect.width) {
+      // getBoundingClientRect already accounts for any transform (e.g. mirror) on the
+      // element, and is already in real CSS pixels relative to the page — the same
+      // pixel space as the wrapper div the input/overlay is absolutely positioned in.
+      return {
+        x: elRect.left - svgRect.left - padX,
+        y: elRect.top - svgRect.top - padY,
+        width: Math.max(elRect.width + padX * 2, 34),
+        height: Math.max(elRect.height + padY * 2, 20),
+      };
+    }
     const bbox = el.getBBox();
     const scale = getScale();
-    setEditing({
-      field,
-      original: initial,
-      value: initial,
-      x: bbox.x * scale - 6,
-      y: bbox.y * scale - 4,
-      width: Math.max(bbox.width * scale + 12, 50),
-      height: Math.max(bbox.height * scale + 8, 22),
-    });
+    return {
+      x: bbox.x * scale - padX,
+      y: bbox.y * scale - padY,
+      width: Math.max(bbox.width * scale + padX * 2, 34),
+      height: Math.max(bbox.height * scale + padY * 2, 20),
+    };
   };
 
-  const commitEdit = () => setEditing(null);
+  const selectField = (field: EditableField, el: SVGGraphicsElement, initial: string) => {
+    if (!editable) return;
+    if (interaction && interaction.field === field) return;
+    setInteraction({ mode: 'selected', field, original: initial, value: initial, ...computeBox(el) });
+  };
+
+  const commitEdit = () => setInteraction(null);
   const cancelEdit = () => {
-    if (editing) onTextChange?.(editing.field, editing.original);
-    setEditing(null);
+    if (interaction) onTextChange?.(interaction.field, interaction.original);
+    setInteraction(null);
+  };
+
+  const deleteField = () => {
+    if (!interaction) return;
+    onTextChange?.(interaction.field, '');
+    setInteraction(null);
   };
 
   const renderArcText = (text: string, position: 'top' | 'bottom', radius: number, field: EditableField, centerOffsetDeg = 0) => {
     if (!text) return null;
+    const mirror = config.textMirror?.[field];
     const chars = text.split('');
 
     // arc length (px) needed per character, based on font size + letter spacing
@@ -202,10 +229,15 @@ const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange, onLogo
     const startAngle = isTop ? centerAngle - totalAngle / 2 : centerAngle + totalAngle / 2;
     const step = chars.length > 1 ? totalAngle / (chars.length - 1) : 0;
 
+    const groupTransforms: string[] = [];
+    if (mirror?.h) groupTransforms.push(`translate(${2 * c},0) scale(-1,1)`);
+    if (mirror?.v) groupTransforms.push(`translate(0,${2 * c}) scale(1,-1)`);
+
     return (
       <g
         className={editable ? 'cursor-pointer' : undefined}
-        onClick={editable ? (e) => startEdit(field, e.currentTarget, text) : undefined}
+        transform={groupTransforms.length ? groupTransforms.join(' ') : undefined}
+        onClick={editable ? (e) => { e.stopPropagation(); selectField(field, e.currentTarget, text); } : undefined}
       >
         {chars.map((ch, i) => {
           const angleDeg = isTop ? startAngle + step * i : startAngle - step * i;
@@ -321,23 +353,30 @@ const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange, onLogo
     ? c + config.logoDistance * Math.sin(logoAngleRad)
     : undefined;
 
-  const centerTextEl = (field: EditableField, text: string, y: number, fontSize: number, weight: number) => (
-    <text
-      x={c}
-      y={y}
-      fontSize={fontSize}
-      fontFamily={config.font}
-      fontWeight={weight}
-      fill="#000"
-      textAnchor="middle"
-      dominantBaseline="central"
-      letterSpacing={field === 'centerText' ? config.letterSpacing / 3 : undefined}
-      className={editable ? 'cursor-pointer' : undefined}
-      onClick={editable ? (e) => startEdit(field, e.currentTarget, text) : undefined}
-    >
-      {text}
-    </text>
-  );
+  const centerTextEl = (field: EditableField, text: string, y: number, fontSize: number, weight: number) => {
+    const mirror = config.textMirror?.[field];
+    const groupTransforms: string[] = [];
+    if (mirror?.h) groupTransforms.push(`translate(${2 * c},0) scale(-1,1)`);
+    if (mirror?.v) groupTransforms.push(`translate(0,${2 * y}) scale(1,-1)`);
+    return (
+      <text
+        x={c}
+        y={y}
+        fontSize={fontSize}
+        fontFamily={config.font}
+        fontWeight={weight}
+        fill="#000"
+        textAnchor="middle"
+        dominantBaseline="central"
+        letterSpacing={field === 'centerText' ? config.letterSpacing / 3 : undefined}
+        transform={groupTransforms.length ? groupTransforms.join(' ') : undefined}
+        className={editable ? 'cursor-pointer' : undefined}
+        onClick={editable ? (e) => { e.stopPropagation(); selectField(field, e.currentTarget, text); } : undefined}
+      >
+        {text}
+      </text>
+    );
+  };
 
   return (
     <div className="relative mx-auto" style={{ width: size, maxWidth: '100%' }}>
@@ -348,6 +387,7 @@ const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange, onLogo
         height={size}
         className="mx-auto max-w-full"
         style={{ background: '#fff', borderRadius: 12 }}
+        onClick={() => interaction?.mode === 'selected' && setInteraction(null)}
       >
         {borderEls()}
 
@@ -390,13 +430,82 @@ const StampPreview = ({ config, size = 320, onTextChange, onSymbolChange, onLogo
         {config.centerSub2 && centerTextEl('centerSub2', config.centerSub2, centerLineY(2), config.fontSize + 1, 600)}
       </svg>
 
+      {interaction?.mode === 'selected' && (
+        <>
+          <div
+            style={{
+              position: 'absolute',
+              left: interaction.x,
+              top: interaction.y,
+              width: interaction.width,
+              height: interaction.height,
+            }}
+            className="pointer-events-none rounded border-2 border-dashed border-primary"
+          />
+          <div
+            style={{
+              position: 'absolute',
+              left: interaction.x + interaction.width / 2,
+              top: interaction.y - 30,
+              transform: 'translateX(-50%)',
+            }}
+            className="flex items-center gap-1 rounded-lg border border-border/60 bg-white px-1.5 py-1 shadow-lg"
+          >
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setInteraction((p) => (p ? { ...p, mode: 'editing' } : p));
+              }}
+              className="rounded p-1 text-muted-foreground hover:bg-secondary hover:text-primary"
+              title="Редактировать"
+            >
+              <Icon name="Pencil" size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onMirrorToggle?.(interaction.field, 'h');
+              }}
+              className={`rounded p-1 hover:bg-secondary ${config.textMirror?.[interaction.field]?.h ? 'text-primary' : 'text-muted-foreground'}`}
+              title="Отразить по горизонтали"
+            >
+              <Icon name="FlipHorizontal2" size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onMirrorToggle?.(interaction.field, 'v');
+              }}
+              className={`rounded p-1 hover:bg-secondary ${config.textMirror?.[interaction.field]?.v ? 'text-primary' : 'text-muted-foreground'}`}
+              title="Отразить по вертикали"
+            >
+              <Icon name="FlipVertical2" size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                deleteField();
+              }}
+              className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+              title="Удалить текст"
+            >
+              <Icon name="Trash2" size={14} />
+            </button>
+          </div>
+        </>
+      )}
+
       {editing && (
         <input
           autoFocus
           value={editing.value}
           onChange={(e) => {
             const value = e.target.value;
-            setEditing((p) => (p ? { ...p, value } : p));
+            setInteraction((p) => (p ? { ...p, value } : p));
             onTextChange?.(editing.field, value);
           }}
           onBlur={commitEdit}
