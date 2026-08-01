@@ -506,7 +506,7 @@ const Editor = ({ onAddToCart }: EditorProps) => {
                           </span>
                         </button>
                         {selectedLayer === layer.key && (
-                          <div className="grid gap-2 rounded-lg bg-secondary/30 p-2 animate-fade-in py-1.5 px-[263px]">
+                          <div className="grid gap-2 rounded-lg bg-secondary/30 p-2 pt-1 animate-fade-in">
                             {layer.fields.map((f) => (
                               <TextField
                                 key={f}

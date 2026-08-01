@@ -31,6 +31,3 @@ venv/
 __pycache__/
 *.pyc
 *.egg-info/
-
-# warmup/handoff артефакты
-tmp/
