@@ -489,9 +489,9 @@ const Editor = ({ onAddToCart }: EditorProps) => {
               {/* Main 3-column layout */}
               <div className="grid lg:grid-cols-[220px_1fr_380px]">
                 {/* Layers panel */}
-                <div className="border-b border-border/60 p-3 lg:border-b-0 lg:border-r">
+                <div className="border-b border-border/60 p-3 lg:border-b-0 lg:border-r py-0 px-0 mx-0">
                   <div className="mb-2 px-1 text-xs uppercase tracking-wide text-muted-foreground">Слои</div>
-                  <div className="grid gap-1 px-0 mx-0 py-100 my-0 rounded-sm">
+                  <div className="grid gap-1 py-100 my-0 rounded-sm px-0 mx-0">
                     {LAYER_DEFS.filter((l) => (l.shapes as readonly string[]).includes(config.shape)).map((layer) => (
                       <div key={layer.key}>
                         <button
