@@ -491,7 +491,7 @@ const Editor = ({ onAddToCart }: EditorProps) => {
                 {/* Layers panel */}
                 <div className="border-b border-border/60 p-3 lg:border-b-0 lg:border-r">
                   <div className="mb-2 px-1 text-xs uppercase tracking-wide text-muted-foreground">Слои</div>
-                  <div className="grid gap-1">
+                  <div className="grid gap-1 px-[113px]">
                     {LAYER_DEFS.filter((l) => (l.shapes as readonly string[]).includes(config.shape)).map((layer) => (
                       <div key={layer.key}>
                         <button
@@ -506,7 +506,7 @@ const Editor = ({ onAddToCart }: EditorProps) => {
                           </span>
                         </button>
                         {selectedLayer === layer.key && (
-                          <div className="grid gap-2 rounded-lg bg-secondary/30 p-2 pt-1 animate-fade-in">
+                          <div className="grid gap-2 rounded-lg bg-secondary/30 p-2 pt-1 animate-fade-in mx-0">
                             {layer.fields.map((f) => (
                               <TextField
                                 key={f}
