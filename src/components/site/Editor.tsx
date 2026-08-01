@@ -462,7 +462,7 @@ const Editor = ({ onAddToCart }: EditorProps) => {
               </div>
 
               {/* AI upload + presets strip */}
-              <div className="grid gap-3 border-b border-border/60 p-4 sm:grid-cols-2">
+              <div className="grid gap-3 border-b border-border/60 p-4 sm:grid-cols-2 px-4">
                 <div className="rounded-xl border border-primary/30 bg-primary/5 p-3">
                   <div className="mb-2 flex items-center gap-2 text-xs font-600 text-primary">
                     <Icon name="Sparkles" size={14} />
@@ -491,7 +491,7 @@ const Editor = ({ onAddToCart }: EditorProps) => {
                 {/* Layers panel */}
                 <div className="border-b border-border/60 p-3 lg:border-b-0 lg:border-r">
                   <div className="mb-2 px-1 text-xs uppercase tracking-wide text-muted-foreground">Слои</div>
-                  <div className="grid gap-1 rounded-sm py-0 my-0 mx-0 px-0">
+                  <div className="grid gap-1 px-0 mx-0 py-100 my-0 rounded-sm">
                     {LAYER_DEFS.filter((l) => (l.shapes as readonly string[]).includes(config.shape)).map((layer) => (
                       <div key={layer.key}>
                         <button
@@ -506,7 +506,7 @@ const Editor = ({ onAddToCart }: EditorProps) => {
                           </span>
                         </button>
                         {selectedLayer === layer.key && (
-                          <div className="grid gap-2 bg-secondary/30 p-2 pt-1 animate-fade-in mx-10 px-[101px] rounded-sm">
+                          <div className="grid gap-2 bg-secondary/30 p-2 pt-1 animate-fade-in rounded-sm px-0 mx-0">
                             {layer.fields.map((f) => (
                               <TextField
                                 key={f}
